@@ -3,8 +3,24 @@
   "WorkspaceRootPath": "C:\\Users\\Matty\\Desktop\\Dx11Work\\DX11Work\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{EA744FDE-6588-4AA7-94BA-318D00E409DC}|FrameworkDX11\\FrameworkDX11.vcxproj|C:\\Users\\Matty\\Desktop\\Dx11Work\\DX11Work\\FrameworkDX11\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{EA744FDE-6588-4AA7-94BA-318D00E409DC}|FrameworkDX11\\FrameworkDX11.vcxproj|solutionrelative:FrameworkDX11\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{EA744FDE-6588-4AA7-94BA-318D00E409DC}|FrameworkDX11\\FrameworkDX11.vcxproj|C:\\Users\\Matty\\Desktop\\Dx11Work\\DX11Work\\FrameworkDX11\\main.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{EA744FDE-6588-4AA7-94BA-318D00E409DC}|FrameworkDX11\\FrameworkDX11.vcxproj|solutionrelative:FrameworkDX11\\main.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EA744FDE-6588-4AA7-94BA-318D00E409DC}|FrameworkDX11\\FrameworkDX11.vcxproj|C:\\Users\\Matty\\Desktop\\Dx11Work\\DX11Work\\FrameworkDX11\\Camera.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{EA744FDE-6588-4AA7-94BA-318D00E409DC}|FrameworkDX11\\FrameworkDX11.vcxproj|solutionrelative:FrameworkDX11\\Camera.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EA744FDE-6588-4AA7-94BA-318D00E409DC}|FrameworkDX11\\FrameworkDX11.vcxproj|C:\\Users\\Matty\\Desktop\\Dx11Work\\DX11Work\\FrameworkDX11\\DrawableGameObject.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{EA744FDE-6588-4AA7-94BA-318D00E409DC}|FrameworkDX11\\FrameworkDX11.vcxproj|solutionrelative:FrameworkDX11\\DrawableGameObject.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EA744FDE-6588-4AA7-94BA-318D00E409DC}|FrameworkDX11\\FrameworkDX11.vcxproj|C:\\Users\\Matty\\Desktop\\Dx11Work\\DX11Work\\FrameworkDX11\\DrawableGameObject.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{EA744FDE-6588-4AA7-94BA-318D00E409DC}|FrameworkDX11\\FrameworkDX11.vcxproj|solutionrelative:FrameworkDX11\\DrawableGameObject.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,17 +30,69 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "DrawableGameObject.h",
+              "DocumentMoniker": "C:\\Users\\Matty\\Desktop\\Dx11Work\\DX11Work\\FrameworkDX11\\DrawableGameObject.h",
+              "RelativeDocumentMoniker": "FrameworkDX11\\DrawableGameObject.h",
+              "ToolTip": "C:\\Users\\Matty\\Desktop\\Dx11Work\\DX11Work\\FrameworkDX11\\DrawableGameObject.h",
+              "RelativeToolTip": "FrameworkDX11\\DrawableGameObject.h",
+              "ViewState": "AQIAABgAAAAAAAAAAADwvykAAAABAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2024-02-28T15:32:17.692Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "DrawableGameObject.cpp",
+              "DocumentMoniker": "C:\\Users\\Matty\\Desktop\\Dx11Work\\DX11Work\\FrameworkDX11\\DrawableGameObject.cpp",
+              "RelativeDocumentMoniker": "FrameworkDX11\\DrawableGameObject.cpp",
+              "ToolTip": "C:\\Users\\Matty\\Desktop\\Dx11Work\\DX11Work\\FrameworkDX11\\DrawableGameObject.cpp",
+              "RelativeToolTip": "FrameworkDX11\\DrawableGameObject.cpp",
+              "ViewState": "AQIAAMEAAAAAAAAAAAAAAMUAAAAXAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2024-02-28T15:19:36.389Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Camera.h",
+              "DocumentMoniker": "C:\\Users\\Matty\\Desktop\\Dx11Work\\DX11Work\\FrameworkDX11\\Camera.h",
+              "RelativeDocumentMoniker": "FrameworkDX11\\Camera.h",
+              "ToolTip": "C:\\Users\\Matty\\Desktop\\Dx11Work\\DX11Work\\FrameworkDX11\\Camera.h",
+              "RelativeToolTip": "FrameworkDX11\\Camera.h",
+              "ViewState": "AQIAAEwAAAAAAAAAAAAAAFkAAAAEAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2024-02-28T15:19:30.864Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "main.cpp",
+              "DocumentMoniker": "C:\\Users\\Matty\\Desktop\\Dx11Work\\DX11Work\\FrameworkDX11\\main.cpp",
+              "RelativeDocumentMoniker": "FrameworkDX11\\main.cpp",
+              "ToolTip": "C:\\Users\\Matty\\Desktop\\Dx11Work\\DX11Work\\FrameworkDX11\\main.cpp",
+              "RelativeToolTip": "FrameworkDX11\\main.cpp",
+              "ViewState": "AQIAAN8BAAAAAAAAAAAvwCsCAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2024-02-28T15:16:24.437Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "main.h",
               "DocumentMoniker": "C:\\Users\\Matty\\Desktop\\Dx11Work\\DX11Work\\FrameworkDX11\\main.h",
               "RelativeDocumentMoniker": "FrameworkDX11\\main.h",
               "ToolTip": "C:\\Users\\Matty\\Desktop\\Dx11Work\\DX11Work\\FrameworkDX11\\main.h",
               "RelativeToolTip": "FrameworkDX11\\main.h",
-              "ViewState": "AQIAAAAAAAAAAAAAAADwvwAAAAAAAAAA",
+              "ViewState": "AQIAAEcAAAAAAAAAAAAvwFgAAAAbAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2024-02-28T14:57:53.884Z",
               "EditorCaption": ""

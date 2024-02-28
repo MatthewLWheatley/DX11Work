@@ -554,6 +554,8 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
     float movement = 0.2f;
     static bool mouseDown = false;
 
+    ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam);
+
     switch( message )
     {
     case WM_RBUTTONDOWN:
@@ -659,7 +661,6 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
     default:
         return DefWindowProc( hWnd, message, wParam, lParam );
     }
-    ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam);
     return 0;
 }
 
@@ -668,14 +669,23 @@ void setupLightForRender()
     Light light;
     light.Enabled = static_cast<int>(true);
     light.LightType = PointLight;
-    light.Color = XMFLOAT4(Colors::White);
+    light.Color = XMFLOAT4(g_lightColor);
     light.SpotAngle = XMConvertToRadians(45.0f);
     light.ConstantAttenuation = 1.0f;
     light.LinearAttenuation = 1;
     light.QuadraticAttenuation = 1;
 
     // set up the light
+
     XMFLOAT4 LightPosition(g_pCamera->GetPosition().x, g_pCamera->GetPosition().y, g_pCamera->GetPosition().z, 1);
+    if (!g_lightOnCamera )
+    {
+        LightPosition = XMFLOAT4(g_lightPosition.x, g_lightPosition.y, g_lightPosition.z, 1.0f);
+    }
+    else
+    {
+        g_lightPosition = { LightPosition.x,LightPosition.y,LightPosition.z };
+    }
     light.Position = LightPosition;
     XMVECTOR LightDirection = XMVectorSet(-LightPosition.x, -LightPosition.y, -LightPosition.z, 0.0f);
     LightDirection = XMVector3Normalize(LightDirection);
@@ -729,7 +739,7 @@ void Render()
     g_pImmediateContext->ClearDepthStencilView( g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
 	// Update the cube transform, material etc. 
-	g_GameObject.update(t, g_pImmediateContext);
+	g_GameObject.update(t, g_pImmediateContext,g_cubeRotaionSpeed);
 
     // get the game object world transform
 	XMMATRIX mGO = XMLoadFloat4x4(g_GameObject.getTransform());
@@ -739,7 +749,7 @@ void Render()
 	cb1.mWorld = XMMatrixTranspose( mGO);
 	cb1.mView = XMMatrixTranspose( g_pCamera->GetViewMatrix() );
 	cb1.mProjection = XMMatrixTranspose( g_Projection );
-	cb1.vOutputColor = XMFLOAT4(red, 0, 0, 0);
+	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
 	g_pImmediateContext->UpdateSubresource( g_pConstantBuffer, 0, nullptr, &cb1, 0, 0 );
 
     
@@ -758,7 +768,15 @@ void Render()
 
     g_GameObject.draw(g_pImmediateContext);
 
+    SetUpGUI();
+    
 
+    // Present our back buffer to our front buffer
+    g_pSwapChain->Present( 0, 0 );
+}
+
+void SetUpGUI()
+{
     // Start ImGui frame
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -769,7 +787,43 @@ void Render()
 
     // Create a slider that modifies myFloatValue
     ImGui::Text("Press \'P\' to toggle");
-    ImGui::Checkbox("MouseLock",&g_CenterMouse);
+    ImGui::Checkbox("MouseLock", &g_CenterMouse);
+    float availableWidth = ImGui::GetContentRegionAvail().x;
+    float sliderWidth = availableWidth / 3.0f - ImGui::GetStyle().ItemSpacing.x; // Adjust for spacing
+    ImGui::PushItemWidth(sliderWidth);
+    ImGui::Text("Rotation speed of cube");
+    ImGui::SliderFloat("##X rotation speed", &g_cubeRotaionSpeed.x, -1.0f, 1.0f);
+    ImGui::SameLine();
+    ImGui::SliderFloat("##Y rotation speed", &g_cubeRotaionSpeed.y, -1.0f, 1.0f);
+    ImGui::SameLine();
+    ImGui::SliderFloat("##Z rotation speed", &g_cubeRotaionSpeed.z, -1.0f, 1.0f);
+    ImGui::PopItemWidth();
+    if (ImGui::Button("Rest to zero")) { g_cubeRotaionSpeed = { 0.0f,0.0f,0.0f }; }
+
+    sliderWidth = availableWidth / 4.0f - ImGui::GetStyle().ItemSpacing.x; // Adjust for spacing
+    ImGui::PushItemWidth(sliderWidth);
+    ImGui::Text("Colour Of Light");
+    ImGui::SliderFloat("##R", &g_lightColor.x, 0.0f, 1.0f);
+    ImGui::SameLine();
+    ImGui::SliderFloat("##G", &g_lightColor.y, 0.0f, 1.0f);
+    ImGui::SameLine();
+    ImGui::SliderFloat("##B", &g_lightColor.z, 0.0f, 1.0f);
+    ImGui::SameLine();
+    ImGui::SliderFloat("##A", &g_lightColor.w, 0.0f, 1.0f);
+    ImGui::PopItemWidth();
+    if (ImGui::Button("Rest to White")) { g_lightColor = { 1.0f,1.0f,1.0f,1.0f }; }
+
+    ImGui::Checkbox("light follows camera", &g_lightOnCamera);
+    sliderWidth = availableWidth / 3.0f - ImGui::GetStyle().ItemSpacing.x; // Adjust for spacing
+    ImGui::PushItemWidth(sliderWidth);
+    ImGui::Text("Position Of Light");
+    ImGui::InputFloat("##X light pos", &g_lightPosition.x);
+    ImGui::SameLine();
+    ImGui::InputFloat("##Y light pos", &g_lightPosition.y);
+    ImGui::SameLine();
+    ImGui::InputFloat("##Z light pos", &g_lightPosition.z);
+    ImGui::PopItemWidth();
+    if (ImGui::Button("Rest to White")) { g_lightPosition = { 1.0f,1.0f,1.0f }; }
 
     ImGui::End(); // End the window
 
@@ -777,6 +831,4 @@ void Render()
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-    // Present our back buffer to our front buffer
-    g_pSwapChain->Present( 0, 0 );
 }

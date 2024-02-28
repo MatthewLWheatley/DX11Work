@@ -28,7 +28,7 @@ public:
 	void cleanup();
 
 	HRESULT								initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext);
-	void								update(float t, ID3D11DeviceContext* pContext);
+	void								update(float t, ID3D11DeviceContext* pContext, XMFLOAT3 rotation);
 	void								draw(ID3D11DeviceContext* pContext);
 	ID3D11Buffer*						getVertexBuffer() { return m_pVertexBuffer; }
 	ID3D11Buffer*						getIndexBuffer() { return m_pIndexBuffer; }

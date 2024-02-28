@@ -79,6 +79,13 @@ int						g_viewHeight;
 DrawableGameObject		g_GameObject;
 
 
-float red;
+XMFLOAT3 g_cubeRotaionSpeed = {0.0f,0.0f, 0.0f};
 bool g_CenterMouse = true;
 bool g_PKeyPressed = false;
+
+//Lighting
+XMFLOAT4 g_lightColor = { 1.0f, 1.0f, 1.0f,1.0f};
+XMFLOAT3 g_lightPosition = { 0.0f, 0.0f, 0.0f};
+bool g_lightOnCamera = true;
+
+void SetUpGUI();

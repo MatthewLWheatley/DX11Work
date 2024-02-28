@@ -198,16 +198,19 @@ void DrawableGameObject::setPosition(XMFLOAT3 position)
 	m_position = position;
 }
 
-void DrawableGameObject::update(float t, ID3D11DeviceContext* pContext)
+void DrawableGameObject::update(float t, ID3D11DeviceContext* pContext, XMFLOAT3 rotation)
 {
 	static float cummulativeTime = 0.1;
 	cummulativeTime += t;
 
 	// Cube:  Rotate around origin
-	XMMATRIX mSpin = XMMatrixRotationY(cummulativeTime);
+	XMMATRIX mSpinY = XMMatrixRotationY(cummulativeTime*rotation.y);
+	XMMATRIX mSpinX = XMMatrixRotationX(cummulativeTime*rotation.x);
+	XMMATRIX mSpinZ = XMMatrixRotationZ(cummulativeTime*rotation.z);
+	
 
 	XMMATRIX mTranslate = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
-	XMMATRIX world = mTranslate * mSpin;
+	XMMATRIX world = mTranslate * mSpinY * mSpinX * mSpinZ;
 	XMStoreFloat4x4(&m_World, world);
 
 	pContext->UpdateSubresource(m_pMaterialConstantBuffer, 0, nullptr, &m_material, 0, 0);
