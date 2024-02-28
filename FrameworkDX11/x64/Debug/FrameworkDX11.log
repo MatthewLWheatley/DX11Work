@@ -1,2 +1,3 @@
-﻿  main.cpp
-  FrameworkDX11.vcxproj -> C:\Users\Matty\Desktop\Dx11Work\DX11Work\x64\Debug\FrameworkDX11.exe
+﻿  DebugLogger.cpp
+C:\Users\W027271K\Documents\GitHub\DX11Work\FrameworkDX11\DebugLogger.cpp(36,32): warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  FrameworkDX11.vcxproj -> C:\Users\W027271K\Documents\GitHub\DX11Work\x64\Debug\FrameworkDX11.exe

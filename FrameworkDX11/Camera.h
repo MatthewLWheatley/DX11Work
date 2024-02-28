@@ -21,6 +21,7 @@ public:
     }
 
     XMFLOAT3 GetPosition() { return position; }
+    void SetPosition(XMFLOAT3 pos) { position = pos; }
 
     void MoveForward(float distance)
     {
@@ -62,44 +63,41 @@ public:
     {
         // Sensitivity factor for mouse movement
         const float sensitivity = 0.001f;
-    
+
         // Apply sensitivity
         float dx = delta.x * sensitivity; // Yaw change
         float dy = delta.y * sensitivity; // Pitch change
-    
-    
-        // Get the current look direction and up vector
+
+        // Get the current look direction
         XMVECTOR lookDirVec = XMLoadFloat3(&lookDir);
         lookDirVec = XMVector3Normalize(lookDirVec);
-        XMVECTOR upVec = XMLoadFloat3(&up);
+
+        // Use a fixed up vector
+        XMVECTOR upVec = XMLoadFloat3(&up); // Assuming 'up' is initialized to a fixed value like (0, 1, 0)
         upVec = XMVector3Normalize(upVec);
-    
+
         // Calculate the camera's right vector
         XMVECTOR rightVec = XMVector3Cross(upVec, lookDirVec);
         rightVec = XMVector3Normalize(rightVec);
-    
-    
-    
-            // Rotate the lookDir vector left or right based on the yaw
-            lookDirVec = XMVector3Transform(lookDirVec, XMMatrixRotationAxis(upVec, dx));
-            lookDirVec = XMVector3Normalize(lookDirVec);
-    
-            // Rotate the lookDir vector up or down based on the pitch
-            lookDirVec = XMVector3Transform(lookDirVec, XMMatrixRotationAxis(rightVec, dy));
-            lookDirVec = XMVector3Normalize(lookDirVec);
-    
-    
-        // Re-calculate the right vector after the yaw rotation
+
+        // Rotate the lookDir vector left or right based on the yaw
+        lookDirVec = XMVector3Transform(lookDirVec, XMMatrixRotationAxis(upVec, dx));
+        lookDirVec = XMVector3Normalize(lookDirVec);
+
+        // Rotate the lookDir vector up or down based on the pitch, using the fixed up vector
+        lookDirVec = XMVector3Transform(lookDirVec, XMMatrixRotationAxis(rightVec, dy));
+        lookDirVec = XMVector3Normalize(lookDirVec);
+
+        // Recalculate the right vector after the rotation
         rightVec = XMVector3Cross(upVec, lookDirVec);
         rightVec = XMVector3Normalize(rightVec);
-    
-        // Re-orthogonalize the up vector to be perpendicular to the look direction and right vector
-        upVec = XMVector3Cross(lookDirVec, rightVec);
-        upVec = XMVector3Normalize(upVec);
-    
+
+        // Instead of recalculating the up vector, keep it constant
+        // This prevents the camera from rolling
+
         // Store the updated vectors back to the class members
         XMStoreFloat3(&lookDir, lookDirVec);
-        XMStoreFloat3(&up, upVec);
+        // Do not store the recalculated up vector, as it is kept constant
     }
 
     void Update() { UpdateViewMatrix(); }

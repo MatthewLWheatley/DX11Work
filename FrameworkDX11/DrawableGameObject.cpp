@@ -198,7 +198,7 @@ void DrawableGameObject::setPosition(XMFLOAT3 position)
 	m_position = position;
 }
 
-void DrawableGameObject::update(float t, ID3D11DeviceContext* pContext, XMFLOAT3 rotation)
+void DrawableGameObject::update(float t, ID3D11DeviceContext* pContext, XMFLOAT3 rotation, XMFLOAT3 position)
 {
 	static float cummulativeTime = 0.1;
 	cummulativeTime += t;
@@ -209,7 +209,7 @@ void DrawableGameObject::update(float t, ID3D11DeviceContext* pContext, XMFLOAT3
 	XMMATRIX mSpinZ = XMMatrixRotationZ(cummulativeTime*rotation.z);
 	
 
-	XMMATRIX mTranslate = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+	XMMATRIX mTranslate = XMMatrixTranslation(position.x,position.y,position.z);
 	XMMATRIX world = mTranslate * mSpinY * mSpinX * mSpinZ;
 	XMStoreFloat4x4(&m_World, world);
 

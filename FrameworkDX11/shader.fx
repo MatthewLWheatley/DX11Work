@@ -91,7 +91,6 @@ struct PS_INPUT
 	float2 Tex : TEXCOORD0;
 };
 
-
 float4 DoDiffuse(Light light, float3 L, float3 N)
 {
 	float NdotL = max(0, dot(N, L));
@@ -192,11 +191,28 @@ PS_INPUT VS( VS_INPUT input )
     return output;
 }
 
+//--------------------------------------------------------------------------------------
+// Vertex Shader 2
+//--------------------------------------------------------------------------------------
+PS_INPUT VS2(VS_INPUT input)
+{
+    PS_INPUT output = (PS_INPUT) 0;
+    output.Pos = mul(input.Pos, World);
+    output.worldPos = output.Pos;
+    output.Pos = mul(output.Pos, View);
+    output.Pos = mul(output.Pos, Projection);
+
+	// multiply the normal by the world transform (to go from model space to world space)
+    output.Norm = mul(float4(input.Norm, 0), World).xyz;
+
+    output.Tex = input.Tex;
+    
+    return output;
+}
 
 //--------------------------------------------------------------------------------------
 // Pixel Shader
 //--------------------------------------------------------------------------------------
-
 float4 PS(PS_INPUT IN) : SV_TARGET
 {
 	LightingResult lit = ComputeLighting(IN.worldPos, normalize(IN.Norm));
@@ -217,6 +233,31 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 
 	return finalColor;
 }
+
+//--------------------------------------------------------------------------------------
+// Pixel Shader 2
+//--------------------------------------------------------------------------------------
+float4 PS2(PS_INPUT IN) : SV_TARGET
+{
+    LightingResult lit = ComputeLighting(IN.worldPos, normalize(IN.Norm));
+
+    float4 texColor = { 1, 1, 1, 1 };
+
+    float4 emissive = Material.Emissive;
+    float4 ambient = Material.Ambient * GlobalAmbient;
+    float4 diffuse = Material.Diffuse * lit.Diffuse;
+    float4 specular = Material.Specular * lit.Specular;
+
+    if (Material.UseTexture)
+    {
+        texColor = txDiffuse.Sample(samLinear, IN.Tex);
+    }
+
+    float4 finalColor = (emissive + ambient + diffuse + specular) * texColor;
+
+    return finalColor;
+}
+
 
 //--------------------------------------------------------------------------------------
 // PSSolid - render a solid color

@@ -383,6 +383,7 @@ HRESULT		InitRunTimeParameters()
 {
 	// Compile the vertex shader
 	ID3DBlob* pVSBlob = nullptr;
+	
 	HRESULT hr = CompileShaderFromFile(L"shader.fx", "VS", "vs_4_0", &pVSBlob);
 	if (FAILED(hr))
 	{
@@ -390,14 +391,15 @@ HRESULT		InitRunTimeParameters()
 			L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
 		return hr;
 	}
-
+    
 	// Create the vertex shader
-	hr = g_pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &g_pVertexShader);
+	hr = g_pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &g_pVertexShaderDefault);
 	if (FAILED(hr))
 	{
 		pVSBlob->Release();
 		return hr;
 	}
+    
 
 	// Define the input layout
 	D3D11_INPUT_ELEMENT_DESC layout[] =
@@ -408,18 +410,12 @@ HRESULT		InitRunTimeParameters()
 	};
 	UINT numElements = ARRAYSIZE(layout);
 
-	// Create the input layout
-	hr = g_pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
-		pVSBlob->GetBufferSize(), &g_pVertexLayout);
-	pVSBlob->Release();
-	if (FAILED(hr))
-		return hr;
-
 	// Set the input layout
-	g_pImmediateContext->IASetInputLayout(g_pVertexLayout);
+	g_pImmediateContext->IASetInputLayout(g_pVertexLayoutDefault);
 
 	// Compile the pixel shader
 	ID3DBlob* pPSBlob = nullptr;
+    
 	hr = CompileShaderFromFile(L"shader.fx", "PS", "ps_4_0", &pPSBlob);
 	if (FAILED(hr))
 	{
@@ -428,12 +424,63 @@ HRESULT		InitRunTimeParameters()
 		return hr;
 	}
 
+
 	// Create the pixel shader
-	hr = g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &g_pPixelShader);
+	hr = g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &g_pPixelShaderDefault);
 	pPSBlob->Release();
 	if (FAILED(hr))
 		return hr;
 
+
+    // Create the input layout
+    hr = g_pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &g_pVertexLayoutDefault);
+    pVSBlob->Release();
+    if (FAILED(hr))
+        return hr;
+    ID3DBlob* pVSBlobOther = nullptr;
+
+    hr = CompileShaderFromFile(L"shader.fx", "VS2", "vs_4_0", &pVSBlobOther);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+
+    hr = g_pd3dDevice->CreateVertexShader(pVSBlobOther->GetBufferPointer(), pVSBlobOther->GetBufferSize(), nullptr, &g_pVertexShaderOther);
+
+    D3D11_INPUT_ELEMENT_DESC layout2[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    };
+    numElements = ARRAYSIZE(layout2);
+    if (FAILED(hr))
+    {
+        pVSBlobOther->Release();
+        return hr;
+    }
+
+    hr = g_pd3dDevice->CreateInputLayout(layout2, numElements, pVSBlobOther->GetBufferPointer(), pVSBlobOther->GetBufferSize(), &g_pVertexLayoutOther);
+    pVSBlobOther->Release();
+    if (FAILED(hr))
+        return hr;
+
+    g_pImmediateContext->IASetInputLayout(g_pVertexLayoutOther);
+
+    ID3DBlob* pPSBlobOther = nullptr;
+    hr = CompileShaderFromFile(L"shader.fx", "PS2", "ps_4_0", &pPSBlobOther);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+    hr = g_pd3dDevice->CreatePixelShader(pPSBlobOther->GetBufferPointer(), pPSBlobOther->GetBufferSize(), nullptr, &g_pPixelShaderOther);
+    pPSBlobOther->Release();
+    if (FAILED(hr))
+        return hr;
 
 	// Create the constant buffer
     D3D11_BUFFER_DESC bd = {};
@@ -441,10 +488,19 @@ HRESULT		InitRunTimeParameters()
 	bd.ByteWidth = sizeof(ConstantBuffer);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
-	hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pConstantBuffer);
+	hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pConstantBufferDefault);
 	if (FAILED(hr))
 		return hr;
 
+    // Create the constant buffer
+    bd = {};
+    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.ByteWidth = sizeof(ConstantBuffer);
+    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    bd.CPUAccessFlags = 0;
+    hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pConstantBufferOther);
+    if (FAILED(hr))
+        return hr;
 
 
 	// Create the light constant buffer
@@ -452,9 +508,18 @@ HRESULT		InitRunTimeParameters()
 	bd.ByteWidth = sizeof(LightPropertiesConstantBuffer);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
-	hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pLightConstantBuffer);
+	hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pLightConstantBufferDefault);
 	if (FAILED(hr))
 		return hr;
+    
+    // Create the light constant buffer
+    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.ByteWidth = sizeof(LightPropertiesConstantBuffer);
+    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    bd.CPUAccessFlags = 0;
+    hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pLightConstantBufferOther);
+    if (FAILED(hr))
+        return hr;
 
 
 	return hr;
@@ -490,12 +555,18 @@ void CleanupDevice()
     if (g_pImmediateContext1) g_pImmediateContext1->Flush();
     g_pImmediateContext->Flush();
 
-    if (g_pLightConstantBuffer)
-        g_pLightConstantBuffer->Release();
-    if (g_pVertexLayout) g_pVertexLayout->Release();
-    if( g_pConstantBuffer ) g_pConstantBuffer->Release();
-    if( g_pVertexShader ) g_pVertexShader->Release();
-    if( g_pPixelShader ) g_pPixelShader->Release();
+    if (g_pLightConstantBufferDefault)
+        g_pLightConstantBufferDefault->Release();
+    if (g_pLightConstantBufferOther)
+        g_pLightConstantBufferOther->Release();
+    if (g_pVertexLayoutDefault) g_pVertexLayoutDefault->Release();
+    if (g_pVertexLayoutOther) g_pVertexLayoutOther->Release();
+    if( g_pConstantBufferOther ) g_pConstantBufferDefault->Release();
+    if( g_pConstantBufferDefault ) g_pConstantBufferOther->Release();
+    if( g_pVertexShaderDefault ) g_pVertexShaderDefault->Release();
+    if( g_pVertexShaderOther ) g_pVertexShaderOther->Release();
+    if( g_pPixelShaderDefault ) g_pPixelShaderDefault->Release();
+    if( g_pPixelShaderOther ) g_pPixelShaderOther->Release();
     if( g_pDepthStencil ) g_pDepthStencil->Release();
     if( g_pDepthStencilView ) g_pDepthStencilView->Release();
     if( g_pRenderTargetView ) g_pRenderTargetView->Release();
@@ -584,6 +655,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
         case 'P':
             if (!g_PKeyPressed)
             {
+                debug.AddLog("fuck");
                 g_CenterMouse = !g_CenterMouse;
                 g_PKeyPressed = true;
             }
@@ -624,7 +696,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
 
         // Get the current cursor position
         POINTS mousePos = MAKEPOINTS(lParam);
-        POINT cursorPos = { mousePos.x, mousePos.y };
+        POINT cursorPos = { mousePos.x, mousePos.y};
         ClientToScreen(hWnd, &cursorPos);
 
         // Calculate the delta from the window center
@@ -642,7 +714,8 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
     break;
    
     case WM_ACTIVATE:
-        if (LOWORD(wParam) != WA_INACTIVE) {
+        if (LOWORD(wParam) != WA_INACTIVE) 
+        {
             CenterMouseInWindow(hWnd);
         }
         break;
@@ -668,7 +741,8 @@ void setupLightForRender()
 {
     Light light;
     light.Enabled = static_cast<int>(true);
-    light.LightType = PointLight;
+    if(g_LightType)light.LightType = PointLight;
+    else light.LightType = DirectionalLight;
     light.Color = XMFLOAT4(g_lightColor);
     light.SpotAngle = XMConvertToRadians(45.0f);
     light.ConstantAttenuation = 1.0f;
@@ -693,8 +767,15 @@ void setupLightForRender()
 
     LightPropertiesConstantBuffer lightProperties;
     lightProperties.EyePosition = LightPosition;
-    lightProperties.Lights[0] = light;
-    g_pImmediateContext->UpdateSubresource(g_pLightConstantBuffer, 0, nullptr, &lightProperties, 0, 0);
+    lightProperties.Lights[0] = light; switch (g_RendererShader)
+    {
+    case 0:
+        g_pImmediateContext->UpdateSubresource(g_pLightConstantBufferDefault, 0, nullptr, &lightProperties, 0, 0);
+        break;
+    case 1:
+        g_pImmediateContext->UpdateSubresource(g_pLightConstantBufferOther, 0, nullptr, &lightProperties, 0, 0);
+        break;
+    }
 }
 
 float calculateDeltaTime()
@@ -739,7 +820,7 @@ void Render()
     g_pImmediateContext->ClearDepthStencilView( g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
 	// Update the cube transform, material etc. 
-	g_GameObject.update(t, g_pImmediateContext,g_cubeRotaionSpeed);
+	g_GameObject.update(t, g_pImmediateContext,g_cubeRotaionSpeed, g_cubePosition);
 
     // get the game object world transform
 	XMMATRIX mGO = XMLoadFloat4x4(g_GameObject.getTransform());
@@ -750,18 +831,29 @@ void Render()
 	cb1.mView = XMMatrixTranspose( g_pCamera->GetViewMatrix() );
 	cb1.mProjection = XMMatrixTranspose( g_Projection );
 	cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
-	g_pImmediateContext->UpdateSubresource( g_pConstantBuffer, 0, nullptr, &cb1, 0, 0 );
 
     
     setupLightForRender();
-
-    // Render a cube
-	g_pImmediateContext->VSSetShader( g_pVertexShader, nullptr, 0 );
-	g_pImmediateContext->VSSetConstantBuffers( 0, 1, &g_pConstantBuffer );
-
-    g_pImmediateContext->PSSetShader( g_pPixelShader, nullptr, 0 );
-	g_pImmediateContext->PSSetConstantBuffers(2, 1, &g_pLightConstantBuffer);
-
+    
+    switch (g_RendererShader)
+    {
+    case 0:
+        g_pImmediateContext->UpdateSubresource(g_pConstantBufferDefault, 0, nullptr, &cb1, 0, 0);
+        g_pImmediateContext->IASetInputLayout(g_pVertexLayoutDefault);
+        g_pImmediateContext->VSSetShader(g_pVertexShaderDefault, nullptr, 0);
+        g_pImmediateContext->PSSetShader(g_pPixelShaderDefault, nullptr, 0);
+        g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBufferDefault);
+        g_pImmediateContext->PSSetConstantBuffers(2, 1, &g_pLightConstantBufferDefault);
+        break;
+    case 1:
+        g_pImmediateContext->UpdateSubresource(g_pConstantBufferOther, 0, nullptr, &cb1, 0, 0);
+        g_pImmediateContext->IASetInputLayout(g_pVertexLayoutOther);
+        g_pImmediateContext->VSSetShader(g_pVertexShaderOther, nullptr, 0);
+        g_pImmediateContext->PSSetShader(g_pPixelShaderOther, nullptr, 0);
+        g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBufferOther);
+        g_pImmediateContext->PSSetConstantBuffers(2, 1, &g_pLightConstantBufferOther);
+        break;
+    }
 
     ID3D11Buffer* materialCB = g_GameObject.getMaterialConstantBuffer();
     g_pImmediateContext->PSSetConstantBuffers(1, 1, &materialCB);
@@ -783,52 +875,139 @@ void SetUpGUI()
     ImGui::NewFrame();
 
     // Create a window called "My Window" and a slider within it
-    ImGui::Begin("Controls/Debugs window"); // Begin a new window
+    ImGui::Begin("hello"); // Begin a new window
 
-    // Create a slider that modifies myFloatValue
-    ImGui::Text("Press \'P\' to toggle");
-    ImGui::Checkbox("MouseLock", &g_CenterMouse);
     float availableWidth = ImGui::GetContentRegionAvail().x;
-    float sliderWidth = availableWidth / 3.0f - ImGui::GetStyle().ItemSpacing.x; // Adjust for spacing
-    ImGui::PushItemWidth(sliderWidth);
-    ImGui::Text("Rotation speed of cube");
-    ImGui::SliderFloat("##X rotation speed", &g_cubeRotaionSpeed.x, -1.0f, 1.0f);
-    ImGui::SameLine();
-    ImGui::SliderFloat("##Y rotation speed", &g_cubeRotaionSpeed.y, -1.0f, 1.0f);
-    ImGui::SameLine();
-    ImGui::SliderFloat("##Z rotation speed", &g_cubeRotaionSpeed.z, -1.0f, 1.0f);
-    ImGui::PopItemWidth();
-    if (ImGui::Button("Rest to zero")) { g_cubeRotaionSpeed = { 0.0f,0.0f,0.0f }; }
 
-    sliderWidth = availableWidth / 4.0f - ImGui::GetStyle().ItemSpacing.x; // Adjust for spacing
-    ImGui::PushItemWidth(sliderWidth);
-    ImGui::Text("Colour Of Light");
-    ImGui::SliderFloat("##R", &g_lightColor.x, 0.0f, 1.0f);
-    ImGui::SameLine();
-    ImGui::SliderFloat("##G", &g_lightColor.y, 0.0f, 1.0f);
-    ImGui::SameLine();
-    ImGui::SliderFloat("##B", &g_lightColor.z, 0.0f, 1.0f);
-    ImGui::SameLine();
-    ImGui::SliderFloat("##A", &g_lightColor.w, 0.0f, 1.0f);
-    ImGui::PopItemWidth();
-    if (ImGui::Button("Rest to White")) { g_lightColor = { 1.0f,1.0f,1.0f,1.0f }; }
+    if (ImGui::MenuItem("controls"))
+    {
+        // Flag to open controls window
+        openControlsWindow = true;
+    }
+    if (ImGui::MenuItem("Cube"))
+    {
+        // Flag to open Cube window
+        openCubeWindow = true;
+    }
+    if (ImGui::MenuItem("light"))
+    {
+        // Flag to open light window
+        openLightWindow = true;
+    }
+    if (ImGui::MenuItem("Rendering"))
+    {
+        // Flag to open light window
+        openRenderingWindow = true;
+    }
 
-    ImGui::Checkbox("light follows camera", &g_lightOnCamera);
-    sliderWidth = availableWidth / 3.0f - ImGui::GetStyle().ItemSpacing.x; // Adjust for spacing
-    ImGui::PushItemWidth(sliderWidth);
-    ImGui::Text("Position Of Light");
-    ImGui::InputFloat("##X light pos", &g_lightPosition.x);
-    ImGui::SameLine();
-    ImGui::InputFloat("##Y light pos", &g_lightPosition.y);
-    ImGui::SameLine();
-    ImGui::InputFloat("##Z light pos", &g_lightPosition.z);
-    ImGui::PopItemWidth();
-    if (ImGui::Button("Rest to White")) { g_lightPosition = { 1.0f,1.0f,1.0f }; }
+    ImGui::End(); // End the main window
 
-    ImGui::End(); // End the window
+    // Controls window
+    if (openControlsWindow)
+    {
+        ImGui::Begin("Controls Settings", &openControlsWindow); // Use a flag to close the window
+        ImGui::Text("Press \'P\' to toggle");
+        ImGui::Checkbox("MouseLock", &g_CenterMouse);
+        ImGui::End(); // End the Controls window
+    }
+
+    // Cube window
+    if (openCubeWindow)
+    {
+        ImGui::Begin("Cube Settings", &openCubeWindow); // Use a flag to close the window
+        float sliderWidth = availableWidth / 3.0f - ImGui::GetStyle().ItemSpacing.x; // Adjust for spacing
+        ImGui::PushItemWidth(sliderWidth);
+        ImGui::Text("Rotation speed of cube");
+        ImGui::SliderFloat("##X rotation speed", &g_cubeRotaionSpeed.x, -1.0f, 1.0f);
+        ImGui::SameLine();
+        ImGui::SliderFloat("##Y rotation speed", &g_cubeRotaionSpeed.y, -1.0f, 1.0f);
+        ImGui::SameLine();
+        ImGui::SliderFloat("##Z rotation speed", &g_cubeRotaionSpeed.z, -1.0f, 1.0f);
+        ImGui::PopItemWidth();
+        if (ImGui::Button("Rest to zero")) { g_cubeRotaionSpeed = { 0.0f,0.0f,0.0f }; }
+
+        sliderWidth = availableWidth / 3.0f - ImGui::GetStyle().ItemSpacing.x; // Adjust for spacing
+        ImGui::PushItemWidth(sliderWidth);
+        ImGui::Text("Position of cube");
+        ImGui::InputFloat("##X cube", &g_cubePosition.x);
+        ImGui::SameLine();
+        ImGui::InputFloat("##Y cube", &g_cubePosition.y);
+        ImGui::SameLine();
+        ImGui::InputFloat("##Z cube", &g_cubePosition.z);
+        ImGui::PopItemWidth();
+        if (ImGui::Button("Rest to zero")) { g_cubePosition = { 0.0f,0.0f,0.0f }; }
+        ImGui::End();
+    }
+
+    // Light window
+    if (openLightWindow)
+    {
+        ImGui::Begin("Light Settings", &openLightWindow); // Use a flag to close the window
+
+        float availableWidth = ImGui::GetContentRegionAvail().x;
+        float sliderWidth = availableWidth / 3.0f - ImGui::GetStyle().ItemSpacing.x; // Adjust for spacing
+        //light
+        sliderWidth = availableWidth / 4.0f - ImGui::GetStyle().ItemSpacing.x; // Adjust for spacing
+        ImGui::PushItemWidth(sliderWidth);
+        ImGui::Text("Colour Of Light");
+        ImGui::SliderFloat("##R", &g_lightColor.x, 0.0f, 1.0f);
+        ImGui::SameLine();
+        ImGui::SliderFloat("##G", &g_lightColor.y, 0.0f, 1.0f);
+        ImGui::SameLine();
+        ImGui::SliderFloat("##B", &g_lightColor.z, 0.0f, 1.0f);
+        ImGui::SameLine();
+        ImGui::SliderFloat("##A", &g_lightColor.w, 0.0f, 1.0f);
+        ImGui::PopItemWidth();
+        if (ImGui::Button("Rest to White")) { g_lightColor = { 1.0f,1.0f,1.0f,1.0f }; }
+
+        ImGui::Checkbox("light follows camera", &g_lightOnCamera);
+        sliderWidth = availableWidth / 3.0f - ImGui::GetStyle().ItemSpacing.x; // Adjust for spacing
+        ImGui::PushItemWidth(sliderWidth);
+        ImGui::Text("Position Of Light");
+        ImGui::InputFloat("##X light pos", &g_lightPosition.x);
+        ImGui::SameLine();
+        ImGui::InputFloat("##Y light pos", &g_lightPosition.y);
+        ImGui::SameLine();
+        ImGui::InputFloat("##Z light pos", &g_lightPosition.z);
+        ImGui::PopItemWidth();
+        if (ImGui::Button("Rest to White"))
+        {
+            g_pCamera->SetPosition(XMFLOAT3{ 0.0f, 0.0f, -3.0f });
+            g_lightPosition = { 0.0f, 0.0f, -3.0f };
+        }
+        if (ImGui::Button("Switch Light Type"))
+        {
+            g_LightType = !g_LightType;
+        }
+        ImGui::SameLine();
+        if (g_LightType)
+        {
+            ImGui::Text("Spot light");
+        }
+        else ImGui::Text("Direction Light");
+        ImGui::End();
+    }
+
+    // Rendering window
+    if (openRenderingWindow) 
+    {
+        ImGui::Begin("Rendinging Settings", &openControlsWindow); // Use a flag to close the window
+        const char* RendererOptions[2] = {"defualt","other"};
+        ImGui::Text("Renderer Shader: %s",RendererOptions[g_RendererShader]);
+        if (ImGui::BeginMenu("RendererOptions")) 
+        {
+            if (ImGui::MenuItem("Defualt")) { g_RendererShader = 0; }
+            if (ImGui::MenuItem("Other")) { g_RendererShader = 1; }
+            ImGui::EndMenu();
+        }
+        ImGui::End(); // End the Controls window
+    }
+
+    // Render your GUI with ImGui here
+    debug.Draw("Debug Logger");
+
 
     // Render ImGui
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
 }

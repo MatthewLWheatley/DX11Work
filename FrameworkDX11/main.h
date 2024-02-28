@@ -21,7 +21,7 @@
 #include "imgui\\imgui_impl_win32.h"
 #include "constants.h"
 #include "Camera.h"
-
+#include "DebugLogger.cpp"
 
 using namespace std;
 
@@ -60,15 +60,21 @@ IDXGISwapChain1* g_pSwapChain1 = nullptr;
 ID3D11RenderTargetView* g_pRenderTargetView = nullptr;
 ID3D11Texture2D* g_pDepthStencil = nullptr;
 ID3D11DepthStencilView* g_pDepthStencilView = nullptr;
-ID3D11VertexShader* g_pVertexShader = nullptr;
 
-ID3D11PixelShader* g_pPixelShader = nullptr;
+ID3D11VertexShader* g_pVertexShaderDefault = nullptr;
+ID3D11VertexShader* g_pVertexShaderOther = nullptr;
 
-ID3D11InputLayout* g_pVertexLayout = nullptr;
+ID3D11PixelShader* g_pPixelShaderDefault = nullptr;
+ID3D11PixelShader* g_pPixelShaderOther = nullptr;
 
-ID3D11Buffer* g_pConstantBuffer = nullptr;
+ID3D11InputLayout* g_pVertexLayoutDefault = nullptr;
+ID3D11InputLayout* g_pVertexLayoutOther = nullptr;
 
-ID3D11Buffer* g_pLightConstantBuffer = nullptr;
+ID3D11Buffer* g_pConstantBufferDefault = nullptr;
+ID3D11Buffer* g_pConstantBufferOther = nullptr;
+
+ID3D11Buffer* g_pLightConstantBufferDefault = nullptr;
+ID3D11Buffer* g_pLightConstantBufferOther = nullptr;
 
 
 XMMATRIX                g_Projection;
@@ -79,7 +85,19 @@ int						g_viewHeight;
 DrawableGameObject		g_GameObject;
 
 
+//debug stuffs below
+bool openControlsWindow = false;
+bool openCubeWindow = false;
+bool openLightWindow = false;
+bool openRenderingWindow = false;
+DebugLogger debug;
+void SetUpGUI();
+
+//cube
 XMFLOAT3 g_cubeRotaionSpeed = {0.0f,0.0f, 0.0f};
+XMFLOAT3 g_cubePosition = {0.0f,0.0f, 0.0f};
+
+//controls
 bool g_CenterMouse = true;
 bool g_PKeyPressed = false;
 
@@ -87,5 +105,7 @@ bool g_PKeyPressed = false;
 XMFLOAT4 g_lightColor = { 1.0f, 1.0f, 1.0f,1.0f};
 XMFLOAT3 g_lightPosition = { 0.0f, 0.0f, 0.0f};
 bool g_lightOnCamera = true;
+bool g_LightType = true;
 
-void SetUpGUI();
+//Rendering
+int g_RendererShader = 0;
