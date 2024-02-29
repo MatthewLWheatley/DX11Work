@@ -92,9 +92,6 @@ public:
         rightVec = XMVector3Cross(upVec, lookDirVec);
         rightVec = XMVector3Normalize(rightVec);
 
-        // Instead of recalculating the up vector, keep it constant
-        // This prevents the camera from rolling
-
         // Store the updated vectors back to the class members
         XMStoreFloat3(&lookDir, lookDirVec);
         // Do not store the recalculated up vector, as it is kept constant

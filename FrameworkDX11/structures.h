@@ -7,6 +7,15 @@ using namespace DirectX;
 //--------------------------------------------------------------------------------------
 
 
+struct SimpleVertex
+{
+	XMFLOAT3 Pos;
+	XMFLOAT3 Normal;
+	XMFLOAT2 TexCoord;
+	XMFLOAT3 tangent;
+	XMFLOAT3 Bitangent;
+};
+
 struct ConstantBuffer
 {
 	XMMATRIX mWorld;

@@ -121,26 +121,27 @@ struct LightingResult
 	float4 Specular;
 };
 
-LightingResult DoPointLight(Light light, float3 vertexToEye, float4 vertexPos, float3 N)
+LightingResult DoPointLight(Light light, float3 vertexToEye, float4 vertexPos, float3 N, float3 Tangent, float3 Bitangent)
 {
-    LightingResult result = { float4(0, 0, 0, 0), float4(0, 0, 0, 0) };
+    LightingResult result;
+    result.Diffuse = float4(0, 0, 0, 0);
+    result.Specular = float4(0, 0, 0, 0);
 
-    // Calculate direction from vertex to light
-    float3 vertexToLight = normalize(light.Position.xyz - vertexPos.xyz);
+    // Calculate light direction
+    float3 lightDir = normalize(light.Position.xyz - vertexPos.xyz);
 
-    // Calculate the distance from the vertex to the light
-    float distance = length(light.Position.xyz - vertexPos.xyz);
+    // Calculate attenuation
+    float attenuation = DoAttenuation(light, length(light.Position.xyz - vertexPos.xyz));
 
-    // Calculate attenuation based on the distance
-    float attenuation = DoAttenuation(light, distance);
+    // Calculate diffuse contribution
+    float diffuseFactor = max(dot(N, lightDir), 0.0f);
+    result.Diffuse = light.Color * Material.Diffuse * diffuseFactor * attenuation;
 
-    // Calculate the diffuse lighting component
-    result.Diffuse = DoDiffuse(vertexToLight, N, light.Color, Material.Diffuse) * attenuation;
-
-    // Calculate the specular lighting component
-    // Note: lightDir should be from light to vertex for specular calculation
-    float3 lightDir = -vertexToLight;
-    result.Specular = DoSpecular(lightDir, N, vertexToEye, light.Color, Material.Specular, Material.SpecularPower) * attenuation;
+    // Calculate specular contribution
+    float3 viewDir = normalize(vertexToEye);
+    float3 reflectDir = reflect(-lightDir, N);
+    float specularFactor = pow(max(dot(viewDir, reflectDir), 0.0), Material.SpecularPower);
+    result.Specular = light.Color * Material.Specular * specularFactor * attenuation;
 
     return result;
 }
@@ -173,7 +174,7 @@ LightingResult ComputeLighting(float3 worldPos, float3 N)
         // Add spot light calculation here if needed
 
         // Calculate diffuse and specular contributions
-        float4 diffuse = DoDiffuse(lightDir, N, Lights[i].Color, Material.Diffuse);
+        float4 diffuse = DoDiffuse(lightDir, N, Lights[i].Color, Material.Diffuse)*2;
         float4 specular = DoSpecular(lightDir, N, viewDir, Lights[i].Color, Material.Specular, Material.SpecularPower);
 
         // Apply attenuation for point lights
@@ -235,6 +236,8 @@ float4 PS(PS_INPUT input) : SV_TARGET
     // Sample the normal map and convert to [-1,1]
     float3 normalMap = txNormalMap.Sample(samNormalMap, input.Tex).xyz *2.0f -1.0f;
     // Construct TBN matrix
+    input.Tangent = normalize(input.Tangent - dot(input.Tangent, input.Norm) * input.Norm);
+    
     float3x3 TBN = float3x3(normalize(input.Tangent), normalize(input.Bitangent), normalize(input.Norm));
     // Transform normal to world space
     // In Pixel Shader

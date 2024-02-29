@@ -163,11 +163,11 @@ HRESULT DrawableGameObject::initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceConte
 
 	// load and setup textures
 	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Stone.dds", nullptr, &m_pTextureResourceView);
-	hr = CreateWICTextureFromFile(pd3dDevice, L"Resources\\crate.jpg", nullptr, &m_pTextureResourceView);
+	hr = CreateWICTextureFromFile(pd3dDevice, L"Resources\\1.jpg", nullptr, &m_pTextureResourceView);
 
 	if (FAILED(hr))
 		return hr;
-	hr = CreateWICTextureFromFile(pd3dDevice, L"Resources\\CrateNormalMap2.png", nullptr, &m_pNormalMapResourceView);
+	hr = CreateWICTextureFromFile(pd3dDevice, L"Resources\\1n.jpg", nullptr, &m_pNormalMapResourceView);
 
 	if (FAILED(hr))
 		return hr;
@@ -230,7 +230,11 @@ void DrawableGameObject::draw(ID3D11DeviceContext* pContext)
 	pContext->PSSetShaderResources(0, 1, &m_pTextureResourceView);
 	pContext->PSSetShaderResources(1, 1, &m_pNormalMapResourceView);
 	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
-	pContext->PSSetSamplers(1, 1, &m_pSamplerLinear);
+
+	UINT stride = sizeof(SimpleVertex);
+	UINT offset = 0;
+	pContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
+	pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 	pContext->DrawIndexed(NUM_VERTICES, 0, 0);
 }
