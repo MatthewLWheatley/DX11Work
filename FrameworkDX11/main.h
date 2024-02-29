@@ -22,6 +22,7 @@
 #include "constants.h"
 #include "Camera.h"
 #include "DebugLogger.cpp"
+#include "FullScreenQuad.h"
 
 using namespace std;
 
@@ -62,18 +63,9 @@ ID3D11Texture2D* g_pDepthStencil = nullptr;
 ID3D11DepthStencilView* g_pDepthStencilView = nullptr;
 
 ID3D11VertexShader* g_pVertexShaderDefault = nullptr;
-ID3D11VertexShader* g_pVertexShaderOther = nullptr;
-
-
 ID3D11PixelShader* g_pPixelShaderDefault = nullptr;
-ID3D11PixelShader* g_pPixelShaderOther = nullptr;
-
-
 ID3D11InputLayout* g_pVertexLayoutDefault = nullptr;
-ID3D11InputLayout* g_pVertexLayoutOther = nullptr;
-
 ID3D11Buffer* g_pConstantBufferDefault = nullptr;
-ID3D11Buffer* g_pConstantBufferOther = nullptr;
 
 ID3D11Buffer* g_pLightConstantBufferDefault = nullptr;
 
@@ -85,7 +77,19 @@ int						g_viewWidth;
 int						g_viewHeight;
 
 DrawableGameObject		g_GameObject;
+FullScreenQuad				g_FSQ;
 
+
+ID3D11RenderTargetView* g_pFSQRenderTargetView = nullptr;
+ID3D11VertexShader* g_pFSQVertexShaderDefault = nullptr;
+ID3D11InputLayout* g_pFSQVertexLayoutDefault = nullptr;
+ID3D11PixelShader* g_pFSQPixelShaderDefault = nullptr;
+ID3D11Buffer* g_pFSQConstantBufferDefault = nullptr;
+ID3D11Buffer* g_pFSQLightConstantBufferDefault = nullptr;
+
+ID3D11Texture2D* renderTargetTexture = nullptr;
+ID3D11RenderTargetView* renderToTextureRTV = nullptr;
+ID3D11ShaderResourceView* renderToTextureSRV = nullptr;
 
 //debug stuffs below
 bool openControlsWindow = false;

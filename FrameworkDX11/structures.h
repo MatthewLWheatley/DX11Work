@@ -24,6 +24,11 @@ struct ConstantBuffer
 	XMFLOAT4 vOutputColor;
 };
 
+struct ConstantBuffer2
+{
+	XMMATRIX World;
+};
+
 struct _Material
 {
 	_Material()

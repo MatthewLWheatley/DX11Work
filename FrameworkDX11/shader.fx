@@ -288,12 +288,3 @@ float4 PS2(PS_INPUT IN) : SV_TARGET
 
     return finalColor;
 }
-
-//--------------------------------------------------------------------------------------
-// PSSolid - render a solid color
-//--------------------------------------------------------------------------------------
-float4 PSSolid(PS_INPUT input) : SV_Target
-{
-	return vOutputColor;
-}
-

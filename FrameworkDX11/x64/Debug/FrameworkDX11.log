@@ -1,6 +1,10 @@
 ﻿  main.cpp
-C:\Users\W027271K\Documents\GitHub\DX11Work\FrameworkDX11\DebugLogger.cpp(36,32): warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-C:\Users\W027271K\Documents\GitHub\DX11Work\FrameworkDX11\main.cpp(444,15): warning C4189: 'pVSBlobOther': local variable is initialized but not referenced
-C:\Users\W027271K\Documents\GitHub\DX11Work\FrameworkDX11\main.cpp(875,15): warning C4456: declaration of 'availableWidth' hides previous local declaration
-C:\Users\W027271K\Documents\GitHub\DX11Work\FrameworkDX11\main.cpp(808,11): message : see declaration of 'availableWidth'
-  FrameworkDX11.vcxproj -> C:\Users\W027271K\Documents\GitHub\DX11Work\x64\Debug\FrameworkDX11.exe
+C:\Users\Matty\Desktop\Dx11Work\DX11Work\FrameworkDX11\DebugLogger.cpp(36,32): warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  (compiling source file 'main.cpp')
+  
+C:\Users\Matty\Desktop\Dx11Work\DX11Work\FrameworkDX11\main.cpp(466,15): warning C4189: 'pVSBlobOther': local variable is initialized but not referenced
+C:\Users\Matty\Desktop\Dx11Work\DX11Work\FrameworkDX11\main.cpp(1001,15): warning C4456: declaration of 'availableWidth' hides previous local declaration
+  C:\Users\Matty\Desktop\Dx11Work\DX11Work\FrameworkDX11\main.cpp(934,11):
+  see declaration of 'availableWidth'
+  
+  FrameworkDX11.vcxproj -> C:\Users\Matty\Desktop\Dx11Work\DX11Work\x64\Debug\FrameworkDX11.exe
