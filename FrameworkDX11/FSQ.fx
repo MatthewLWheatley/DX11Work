@@ -1,49 +1,43 @@
-
-cbuffer ConstantBuffer : register(b0)
+cbuffer MatrixBuffer
 {
-    matrix World;
-    matrix View;
-    matrix Projection;
-    float4 vOutputColor;
-}
-
-Texture2D txDiffuse : register(t0);
-SamplerState samLinear : register(s0);
-
-
-struct VS_INPUT
-{
-    float4 Pos : POSITION;
-    float3 Norm : NORMAL;
-    float2 Tex : TEXCOORD0;
+    matrix worldMatrix;
+    matrix viewMatrix;
+    matrix projectionMatrix;
 };
 
-struct PS_INPUT
+struct VertexInputType
 {
-    float4 Pos : SV_POSITION;
-    float3 WorldPos : POSITION;
-    float3 WorldNorm : NORMAL;
-    float2 Tex : TEXCOORD0;
+    float4 position : POSITION;
+    float2 tex : TEXCOORD;
 };
 
-//--------------------------------------------------------------------------------------
-// Vertex Shader 2
-//--------------------------------------------------------------------------------------
-PS_INPUT VS(VS_INPUT input)
+struct PixelInputType
 {
-    PS_INPUT output = (PS_INPUT) 0;
-    output.Pos = mul(input.Pos, World);
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD;
+};
 
-    output.Tex = input.Tex;
+PixelInputType MainVS(VertexInputType input)
+{
+    PixelInputType output;
+    input.position.w = 1.0f;
+    //output.position = mul(input.position, worldMatrix);
+    //output.position = mul(output.position, viewMatrix);
+    //output.position = mul(output.position, projectionMatrix);
+    output.position = input.position; // Directly use the input position
+    output.tex = input.tex;
     
     return output;
 }
 
-//--------------------------------------------------------------------------------------
-// Pixel Shader
-//--------------------------------------------------------------------------------------
-float4 PS(PS_INPUT input) : SV_TARGET
-{
-    return txDiffuse.Sample(samLinear, input.Tex);
-}
+Texture2D shaderTexture;
+SamplerState SampleType;
 
+
+float4 MainPS(PixelInputType input) : SV_TARGET
+{
+    float4 textureColor;
+    textureColor = shaderTexture.Sample(SampleType, input.tex);
+    
+    return textureColor;
+}

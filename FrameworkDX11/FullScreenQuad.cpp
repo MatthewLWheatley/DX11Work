@@ -5,6 +5,14 @@ using namespace DirectX;
 
 #define NUM_VERTICES 6
 
+struct SimpleVertexs
+{
+	DirectX::XMFLOAT3 Pos;
+	DirectX::XMFLOAT2 Tex;
+};
+
+
+
 FullScreenQuad::FullScreenQuad()
 {
 	m_pVertexBuffer = nullptr;
@@ -48,12 +56,12 @@ HRESULT FullScreenQuad::initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 {
 
 	// Define the vertices and indices for the fullscreen quad
-	SimpleVertex vertices[] =
+	SimpleVertexs vertices[] =
 	{
-		{ XMFLOAT3(-1, -1, 0.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(0.0f, 1.0f) },
-		{ XMFLOAT3(-1, 1, 0.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
-		{ XMFLOAT3(1, 1, 0.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-		{ XMFLOAT3(1, -1, 0.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
+		{ DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f), DirectX::XMFLOAT2(0.0f, 1.0f) },  // Bottom left
+		{ DirectX::XMFLOAT3(-1.0f, 1.0f, 0.0f), DirectX::XMFLOAT2(0.0f, 0.0f) },   // Top left
+		{ DirectX::XMFLOAT3(1.0f, 1.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 0.0f) },    // Top right
+		{ DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f) }    // Bottom right
 	};
 
 	WORD indices[] = {
@@ -62,25 +70,31 @@ HRESULT FullScreenQuad::initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	};
 
 
-	// Create the vertex buffer
-	D3D11_BUFFER_DESC bd;
-	ZeroMemory(&bd, sizeof(bd));
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(SimpleVertex) * ARRAYSIZE(vertices);
-	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bd.CPUAccessFlags = 0;
+	// Create vertex buffer
+	D3D11_BUFFER_DESC vbd;
+	ZeroMemory(&vbd, sizeof(vbd));
+	vbd.Usage = D3D11_USAGE_DEFAULT;
+	vbd.ByteWidth = sizeof(vertices);
+	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vbd.CPUAccessFlags = 0;
 
 	D3D11_SUBRESOURCE_DATA initData;
 	ZeroMemory(&initData, sizeof(initData));
 	initData.pSysMem = vertices;
-	pd3dDevice->CreateBuffer(&bd, &initData, &m_pVertexBuffer);
+	ID3D11Buffer* vertexBuffer = nullptr;
+	pd3dDevice->CreateBuffer(&vbd, &initData, &vertexBuffer);
 
-	// Create the index buffer
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(WORD) * ARRAYSIZE(indices);
-	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	// Create index buffer
+	D3D11_BUFFER_DESC ibd;
+	ZeroMemory(&ibd, sizeof(ibd));
+	ibd.Usage = D3D11_USAGE_DEFAULT;
+	ibd.ByteWidth = sizeof(indices);
+	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	ibd.CPUAccessFlags = 0;
+
 	initData.pSysMem = indices;
-	pd3dDevice->CreateBuffer(&bd, &initData, &m_pIndexBuffer);
+	ID3D11Buffer* indexBuffer = nullptr;
+	pd3dDevice->CreateBuffer(&ibd, &initData, &indexBuffer);
 
 	// Create a sampler state
 	D3D11_SAMPLER_DESC sampDesc;
@@ -96,6 +110,11 @@ HRESULT FullScreenQuad::initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	// Set the sampler state
 	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
+
+	// Correctly assigning buffers to class members
+	m_pVertexBuffer = vertexBuffer;
+	m_pIndexBuffer = indexBuffer;
+
 
 	return S_OK;
 }
@@ -126,13 +145,13 @@ void FullScreenQuad::update(float t, ID3D11DeviceContext* pContext, XMFLOAT3 rot
 void FullScreenQuad::draw(ID3D11DeviceContext* pContext)
 {
 
-	pContext->PSSetShaderResources(0, 1, &m_pTextureResourceView);
-	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
-
-	UINT stride = sizeof(SimpleVertex);
+	UINT stride = sizeof(SimpleVertexs);
 	UINT offset = 0;
 	pContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
-	pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	pContext->PSSetShaderResources(0, 1, &m_pTextureResourceView);
+	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
 
 	pContext->DrawIndexed(6, 0, 0);
 }

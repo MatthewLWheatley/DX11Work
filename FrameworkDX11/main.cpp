@@ -318,14 +318,15 @@ HRESULT InitDevice()
     descDSV.Format = descDepth.Format;
     descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     descDSV.Texture2D.MipSlice = 0;
-    hr = g_pd3dDevice->CreateDepthStencilView( g_pDepthStencil, &descDSV, &g_pDepthStencilView );
-    if( FAILED( hr ) )
+    hr = g_pd3dDevice->CreateDepthStencilView(g_pDepthStencil, &descDSV, &g_pDepthStencilView);
+    if (FAILED(hr))
     {
         MessageBox(nullptr,
             L"Failed to create a depth / stencil view.", L"Error", MB_OK);
         return hr;
     }
 
+    g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
 
     // Setup the viewport
     D3D11_VIEWPORT vp;
@@ -335,94 +336,42 @@ HRESULT InitDevice()
     vp.MaxDepth = 1.0f;
     vp.TopLeftX = 0;
     vp.TopLeftY = 0;
-    g_pImmediateContext->RSSetViewports( 1, &vp );
+    g_pImmediateContext->RSSetViewports(1, &vp);
 
 
+    hr = InitRunTimeParameters();
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"Failed to initialise mesh.", L"Error", MB_OK);
+        return hr;
+    }
 
+    hr = InitWorld(width, height);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"Failed to initialise world.", L"Error", MB_OK);
+        return hr;
+    }
 
-
-
-    D3D11_TEXTURE2D_DESC textureDesc;
-    D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
-    D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
-
-    ///////////////////////// Map's Texture
-    // Initialize the  texture description.
-    ZeroMemory(&textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
-
-    // Setup the texture description.
-    // We will have our map be a square
-    // We will need to have this texture bound as a render target AND a shader resource
-    textureDesc.Width = width;
-    textureDesc.Height = height;
-    textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    textureDesc.Usage = D3D11_USAGE_DEFAULT;
-    textureDesc.SampleDesc.Count = 1;
-    textureDesc.SampleDesc.Quality = 0;
-    textureDesc.CPUAccessFlags = 0;
-    textureDesc.ArraySize = 1;
-    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-    textureDesc.MiscFlags = 0;
-    textureDesc.MipLevels = 1;
-
-    g_pd3dDevice->CreateTexture2D(&textureDesc, NULL, &fSQTextureMap);
-
-    /////////////////////// Map's Render Target
-// Setup the description of the render target view.
-    renderTargetViewDesc.Format = textureDesc.Format;
-    renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-    renderTargetViewDesc.Texture2D.MipSlice = 0;
-
-    // Create the render target view.
-    g_pd3dDevice->CreateRenderTargetView(fSQTextureMap, &renderTargetViewDesc, &g_pFSQRenderTargetView);
-
-
-    /////////////////////// Map's Shader Resource View
-// Setup the description of the shader resource view.
-    shaderResourceViewDesc.Format = textureDesc.Format;
-    shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
-    shaderResourceViewDesc.Texture2D.MipLevels = 1;
-
-    // Create the shader resource view.
-    g_pd3dDevice->CreateShaderResourceView(fSQTextureMap, &shaderResourceViewDesc, &g_FSQShaderResourceView);
-
-
-
-
-	hr = InitRunTimeParameters();
-	if (FAILED(hr))
-	{
-		MessageBox(nullptr,
-			L"Failed to initialise mesh.", L"Error", MB_OK);
-		return hr;
-	}
-
-	hr = InitWorld(width, height);
-	if (FAILED(hr))
-	{
-		MessageBox(nullptr,
-			L"Failed to initialise world.", L"Error", MB_OK);
-		return hr;
-	}
-
-
-   
     hr = g_GameObject.initMesh(g_pd3dDevice, g_pImmediateContext);
     if (FAILED(hr))
+
+
     {
         MessageBox(nullptr,
             L"Failed to init mesh in game object.", L"Error", MB_OK);
         return hr;
     }
 
-    hr = g_FullScreenQuad.initMesh(g_pd3dDevice, g_pImmediateContext);
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr,
-            L"Failed to init mesh in game object.", L"Error", MB_OK);
-        return hr;
-    }
+
+
+
+
+
+
+
 
     // Initialize ImGui after setting up Direct3D
     IMGUI_CHECKVERSION();
@@ -522,79 +471,6 @@ HRESULT		InitRunTimeParameters()
 		return hr;
 
 
-
-
-
-
-
-
-
-    // Compile the vertex shader
-    ID3DBlob* pVSBlob2 = nullptr;
-
-    hr = CompileShaderFromFile(L"FSQ.fx", "VS", "vs_4_0", &pVSBlob2);
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr,
-            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-        return hr;
-    }
-
-    // Create the vertex shader
-    hr = g_pd3dDevice->CreateVertexShader(pVSBlob2->GetBufferPointer(), pVSBlob2->GetBufferSize(), nullptr, &g_pFSQVertexShaderDefault);
-    if (FAILED(hr))
-    {
-        pVSBlob2->Release();
-        return hr;
-    }
-
-
-    // Define the input layout
-    D3D11_INPUT_ELEMENT_DESC layout3[] =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    };
-    UINT numElements3 = ARRAYSIZE(layout3);
-
-    // Set the input layout
-    g_pImmediateContext->IASetInputLayout(g_pFSQVertexLayoutDefault);
-
-    // Compile the pixel shader
-    ID3DBlob* pPSBlob2 = nullptr;
-
-    hr = CompileShaderFromFile(L"FSQ.fx", "PS", "ps_4_0", &pPSBlob2);
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr,
-            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-        return hr;
-    }
-
-
-    // Create the pixel shader
-    hr = g_pd3dDevice->CreatePixelShader(pPSBlob2->GetBufferPointer(), pPSBlob2->GetBufferSize(), nullptr, &g_pFSQPixelShaderDefault);
-    pPSBlob2->Release();
-    if (FAILED(hr))
-        return hr;
-
-
-    // Create the input layout
-    hr = g_pd3dDevice->CreateInputLayout(layout3, numElements3, pVSBlob2->GetBufferPointer(), pVSBlob2->GetBufferSize(), &g_pFSQVertexLayoutDefault);
-    pVSBlob2->Release();
-    if (FAILED(hr))
-        return hr;
-
-    // Create the constant buffer
-    D3D11_BUFFER_DESC bd2 = {};
-    bd2.Usage = D3D11_USAGE_DEFAULT;
-    bd2.ByteWidth = sizeof(ConstantBuffer);
-    bd2.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    bd2.CPUAccessFlags = 0;
-    hr = g_pd3dDevice->CreateBuffer(&bd2, nullptr, &g_pFSQConstantBufferDefault);
-    if (FAILED(hr))
-        return hr;
 
 	return hr;
 }
@@ -884,61 +760,111 @@ float calculateDeltaTime()
 //--------------------------------------------------------------------------------------
 void Render()
 {
-    // Calculate delta time (capped at 60 fps)
-    float deltaTime = calculateDeltaTime();
-    if (deltaTime == 0.0f)
+    float t = calculateDeltaTime(); // capped at 60 fps
+    if (t == 0.0f)
         return;
 
-    // Update game objects
-    g_GameObject.update(deltaTime, g_pImmediateContext, g_cubeRotaionSpeed, g_cubePosition);
+    // Clear the back buffer
+    g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, Colors::MidnightBlue);
 
-    // Clear depth stencil view
-    g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    // Clear the depth buffer to 1.0 (max depth)
+    g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+    // Update the cube transform, material, etc.
+    g_GameObject.update(t, g_pImmediateContext, g_cubeRotaionSpeed, g_cubePosition);
 
     // Get the game object world transform
     XMMATRIX mGO = XMLoadFloat4x4(g_GameObject.getTransform());
+
+    // Store world and the view / projection in a constant buffer for the vertex shader to use
     ConstantBuffer cb1;
     cb1.mWorld = XMMatrixTranspose(mGO);
     cb1.mView = XMMatrixTranspose(g_pCamera->GetViewMatrix());
     cb1.mProjection = XMMatrixTranspose(g_Projection);
-    g_pImmediateContext->UpdateSubresource(g_pConstantBufferDefault, 0, nullptr, &cb1, 0, 0);
+    cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
 
-    // Setup light for rendering
     setupLightForRender();
 
-
-    // Render the color cube
-    // Set shaders and textures for fSQ
-    g_pImmediateContext->VSSetShader(g_pVertexShaderDefault, nullptr, 0);
-    g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBufferDefault);
-
-    g_pImmediateContext->PSSetShader(g_pPixelShaderDefault, nullptr, 0);
-    g_pImmediateContext->PSSetConstantBuffers(2, 1, &g_pLightConstantBufferDefault);
-    g_pImmediateContext->OMSetRenderTargets(1, &g_pFSQRenderTargetView, g_pDepthStencilView);
-    g_pImmediateContext->ClearRenderTargetView(g_pFSQRenderTargetView, Colors::Beige);
-    g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-    g_GameObject.draw(g_pImmediateContext);
-    g_FullScreenQuad.SetTexture(g_FSQShaderResourceView);
-
-    // Reset constant buffer
-    cb1.mWorld = XMMatrixIdentity();
-    cb1.mView = XMMatrixIdentity();
-    cb1.mProjection = XMMatrixIdentity();
+    // Update subresources and set shaders for game object
     g_pImmediateContext->UpdateSubresource(g_pConstantBufferDefault, 0, nullptr, &cb1, 0, 0);
+    g_pImmediateContext->IASetInputLayout(g_pVertexLayoutDefault);
+    g_pImmediateContext->VSSetShader(g_pVertexShaderDefault, nullptr, 0);
+    g_pImmediateContext->PSSetShader(g_pPixelShaderDefault, nullptr, 0);
+    g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBufferDefault);
+    g_pImmediateContext->PSSetConstantBuffers(2, 1, &g_pLightConstantBufferDefault);
 
-    // Render the full-screen quad (color cube)
-    g_pImmediateContext->VSSetShader(g_pFSQVertexShaderDefault, nullptr, 0);
-    g_pImmediateContext->PSSetShader(g_pFSQPixelShaderDefault, nullptr, 0);
-    g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
+    ID3D11Buffer* materialCB = g_GameObject.getMaterialConstantBuffer();
+    g_pImmediateContext->PSSetConstantBuffers(1, 1, &materialCB);
+
+    // Draw game object
+    g_GameObject.draw(g_pImmediateContext);
 
     g_FullScreenQuad.draw(g_pImmediateContext);
 
     SetUpGUI();
-
-    // Present back buffer
+    // Present our back buffer to our front buffer
     g_pSwapChain->Present(0, 0);
 }
+
+
+
+//void Render()
+//{
+//    // Calculate delta time (capped at 60 fps)
+//    float deltaTime = calculateDeltaTime();
+//    if (deltaTime == 0.0f)
+//        return;
+//
+//    // Update game objects
+//    g_GameObject.update(deltaTime, g_pImmediateContext, g_cubeRotaionSpeed, g_cubePosition);
+//
+//    // Clear depth stencil view
+//    g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+//
+//    // Get the game object world transform
+//    XMMATRIX mGO = XMLoadFloat4x4(g_GameObject.getTransform());
+//    ConstantBuffer cb1;
+//    cb1.mWorld = XMMatrixTranspose(mGO);
+//    cb1.mView = XMMatrixTranspose(g_pCamera->GetViewMatrix());
+//    cb1.mProjection = XMMatrixTranspose(g_Projection);
+//    g_pImmediateContext->UpdateSubresource(g_pConstantBufferDefault, 0, nullptr, &cb1, 0, 0);
+//
+//    // Setup light for rendering
+//    setupLightForRender();
+//
+//
+//    // Render the color cube
+//    // Set shaders and textures for fSQ
+//    g_pImmediateContext->VSSetShader(g_pVertexShaderDefault, nullptr, 0);
+//    g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBufferDefault);
+//
+//    g_pImmediateContext->PSSetShader(g_pPixelShaderDefault, nullptr, 0);
+//    g_pImmediateContext->PSSetConstantBuffers(2, 1, &g_pLightConstantBufferDefault);
+//    g_pImmediateContext->OMSetRenderTargets(1, &g_pFSQRenderTargetView, g_pDepthStencilView);
+//    g_pImmediateContext->ClearRenderTargetView(g_pFSQRenderTargetView, Colors::Beige);
+//    g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+//
+//    g_GameObject.draw(g_pImmediateContext);
+//    g_FullScreenQuad.SetTexture(g_FSQShaderResourceView);
+//
+//    // Reset constant buffer
+//    cb1.mWorld = XMMatrixIdentity();
+//    cb1.mView = XMMatrixIdentity();
+//    cb1.mProjection = XMMatrixIdentity();
+//    g_pImmediateContext->UpdateSubresource(g_pConstantBufferDefault, 0, nullptr, &cb1, 0, 0);
+//
+//    // Render the full-screen quad (color cube)
+//    g_pImmediateContext->VSSetShader(g_pFSQVertexShaderDefault, nullptr, 0);
+//    g_pImmediateContext->PSSetShader(g_pFSQPixelShaderDefault, nullptr, 0);
+//    g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
+//
+//    g_FullScreenQuad.draw(g_pImmediateContext);
+//
+//    SetUpGUI();
+//
+//    // Present back buffer
+//    g_pSwapChain->Present(0, 0);
+//}
 
 void SetUpGUI()
 {
@@ -1084,71 +1010,3 @@ void SetUpGUI()
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
-
-
-//// Update game objects
-//g_GameObject.update(deltaTime, g_pImmediateContext);
-//
-//// Clear depth stencil view
-//g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-//
-//// Get the game object world transform
-//XMMATRIX mGO = XMLoadFloat4x4(g_GameObject.getTransform());
-//ConstantBuffer cb1;
-//cb1.mWorld = XMMatrixTranspose(mGO);
-//cb1.mView = XMMatrixTranspose(g_pCamera->GetViewMatrix());
-//cb1.mProjection = XMMatrixTranspose(g_Projection);
-//g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
-//
-
-//
-//// Render the color cube
-//// Set shaders and textures for fSQ
-//g_pImmediateContext->VSSetShader(g_pVertexShader, nullptr, 0);
-//g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBuffer);
-//
-//// Set shaders and textures for colorFSQ
-//g_pImmediateContext->PSSetShader(g_pColorPixelShader, nullptr, 0);
-//g_pImmediateContext->OMSetRenderTargets(1, &g_pColorRenderTargetView, g_pDepthStencilView);
-//g_pImmediateContext->ClearRenderTargetView(g_pColorRenderTargetView, Colors::DimGray);
-//
-//g_GameObject.draw(g_pImmediateContext);
-//colorFSQ.setDiffuseTexture(colorShaderResourceViewMap);
-//g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-//
-//// Set shaders and textures for normalFSQ
-//g_pImmediateContext->PSSetShader(g_pNormalPixelShader, nullptr, 0);
-//g_pImmediateContext->OMSetRenderTargets(1, &g_pNormalRenderTargetView, g_pDepthStencilView);
-//g_pImmediateContext->ClearRenderTargetView(g_pNormalRenderTargetView, Colors::DimGray);
-//g_GameObject.draw(g_pImmediateContext);
-//
-//normalFSQ.setDiffuseTexture(normalShaderResourceViewMap);
-//g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-//
-//g_pImmediateContext->PSSetShader(g_pPixelShader, nullptr, 0);
-//g_pImmediateContext->PSSetConstantBuffers(2, 1, &g_pLightConstantBuffer);
-//g_pImmediateContext->OMSetRenderTargets(1, &g_pFSQRenderTargetView, g_pDepthStencilView);
-//g_pImmediateContext->ClearRenderTargetView(g_pFSQRenderTargetView, Colors::Red);
-//
-//terrain->Render(g_pImmediateContext);
-//g_GameObject.draw(g_pImmediateContext);
-//fSQ.setDiffuseTexture(shaderResourceViewMap);
-//g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-//
-//// Set rasterizer state
-//g_pImmediateContext->RSSetState(nullptr);
-//
-//// Reset constant buffer
-//cb1.mWorld = XMMatrixIdentity();
-//cb1.mView = XMMatrixIdentity();
-//cb1.mProjection = XMMatrixIdentity();
-//g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
-//
-//// Render the full-screen quad (color cube)
-//g_pImmediateContext->VSSetShader(g_pFSQVertexShader, nullptr, 0);
-//g_pImmediateContext->PSSetShader(g_pFSQPixelShader, nullptr, 0);
-//g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
-//
-////normalFSQ.draw(g_pImmediateContext);
-////colorFSQ.draw(g_pImmediateContext);
-//fSQ.draw(g_pImmediateContext);
