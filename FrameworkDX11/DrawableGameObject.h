@@ -35,6 +35,7 @@ public:
 	ID3D11SamplerState**				getTextureSamplerState() { return &m_pSamplerLinear; }
 	ID3D11Buffer*						getMaterialConstantBuffer() { return m_pMaterialConstantBuffer;}
 	void								setPosition(XMFLOAT3 position);
+	void SetTexture(ID3D11ShaderResourceView* shaderRV) { m_pTextureResourceView = shaderRV; }
 
 private:
 	
