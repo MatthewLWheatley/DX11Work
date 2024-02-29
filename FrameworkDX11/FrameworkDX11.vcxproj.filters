@@ -69,6 +69,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\stone.dds" />
+    <Image Include="Resources\MilkCat.dds" />
+    <Image Include="Resources\MilkCatNormal.dds" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">
@@ -85,6 +87,7 @@
     <None Include="imgui\.gitignore">
       <Filter>imgui</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="imgui\LICENSE.txt">

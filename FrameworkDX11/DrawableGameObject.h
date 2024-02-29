@@ -8,7 +8,8 @@
 #include "resource.h"
 #include <iostream>
 #include "structures.h"
-
+#include "DirectXHelpers.h"
+#include "WICTextureLoader.h"
 
 using namespace DirectX;
 
@@ -17,6 +18,8 @@ struct SimpleVertex
 	XMFLOAT3 Pos;
 	XMFLOAT3 Normal;
 	XMFLOAT2 TexCoord;
+	XMFLOAT3 tangent;
+	XMFLOAT3 Bitangent;
 };
 
 class DrawableGameObject
@@ -30,6 +33,9 @@ public:
 	HRESULT								initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext);
 	void								update(float t, ID3D11DeviceContext* pContext, XMFLOAT3 rotation, XMFLOAT3 position);
 	void								draw(ID3D11DeviceContext* pContext);
+	void CalculateModelVectors(SimpleVertex* vertices, int vertexCount);
+	void CalculateTangentBinormalLH(SimpleVertex v0, SimpleVertex v1, SimpleVertex v2, XMFLOAT3& normal, XMFLOAT3& tangent, XMFLOAT3& binormal);
+	void CalculateTangentBinormalRH(SimpleVertex v0, SimpleVertex v1, SimpleVertex v2, XMFLOAT3& normal, XMFLOAT3& tangent, XMFLOAT3& binormal);
 	ID3D11Buffer*						getVertexBuffer() { return m_pVertexBuffer; }
 	ID3D11Buffer*						getIndexBuffer() { return m_pIndexBuffer; }
 	ID3D11ShaderResourceView**			getTextureResourceView() { return &m_pTextureResourceView; 	}
@@ -45,6 +51,7 @@ private:
 	ID3D11Buffer*						m_pVertexBuffer;
 	ID3D11Buffer*						m_pIndexBuffer;
 	ID3D11ShaderResourceView*			m_pTextureResourceView;
+	ID3D11ShaderResourceView*			m_pNormalMapResourceView;
 	ID3D11SamplerState *				m_pSamplerLinear;
 	MaterialPropertiesConstantBuffer	m_material;
 	ID3D11Buffer*						m_pMaterialConstantBuffer = nullptr;
