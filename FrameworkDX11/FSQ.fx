@@ -37,3 +37,18 @@ float4 PS(PS_INPUT input) : SV_TARGET
     //return float4(xy, 0.0, 1.0);
     return ShaderTexture.Sample(SamplerLinear,xy);
 }
+
+
+float4 PSGS(PS_INPUT input) : SV_Target
+{
+    float2 xy = input.Tex.xy;
+    xy.x = input.Tex.x / 2 - input.Pos.x;
+    xy.y = -input.Tex.y / 2 - input.Pos.y;
+    float4 color = ShaderTexture.Sample(SamplerLinear, xy);
+
+    // Calculate luminance
+    float luminance = dot(color.rgb, float3(0.3, 0.5, 0.1));
+
+    // Return the grayscale color
+    return float4(luminance, luminance, luminance, color.a);
+}

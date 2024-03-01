@@ -401,9 +401,13 @@ HRESULT InitDevice()
 	}
 
 
-   
+
+    g_FSQGS.setSize(1.0f);
+    g_FSQGS.setPos(XMFLOAT2(0.0f, 0.0f));
+
     hr = g_GameObject.initMesh(g_pd3dDevice, g_pImmediateContext);
     hr = g_FSQ.initMesh(g_pd3dDevice, g_pImmediateContext);
+    hr = g_FSQGS.initMesh(g_pd3dDevice, g_pImmediateContext);
 
     if (FAILED(hr))
     {
@@ -559,6 +563,20 @@ HRESULT		InitRunTimeParameters()
     if (FAILED(hr))
         return hr;
 
+    hr = CompileShaderFromFile(L"FSQ.fx", "PSGS", "ps_4_0", &pPSBlob2);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr,
+            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+
+    // Create the pixel shader
+    hr = g_pd3dDevice->CreatePixelShader(pPSBlob2->GetBufferPointer(), pPSBlob2->GetBufferSize(), nullptr, &g_pFSQGSPixelShaderDefault);
+    pPSBlob2->Release();
+    if (FAILED(hr))
+        return hr;
+
     // Create the input layout
     hr = g_pd3dDevice->CreateInputLayout(layout2, numElements2, pVSBlob2->GetBufferPointer(), pVSBlob2->GetBufferSize(), &g_pFSQVertexLayoutDefault);
     pVSBlob2->Release();
@@ -598,6 +616,7 @@ void CleanupDevice()
 {
     g_GameObject.cleanup();
     g_FSQ.cleanup();
+    g_FSQGS.cleanup();
 
     // Remove any bound render target or depth/stencil buffer
     ID3D11RenderTargetView* nullViews[] = { nullptr };
@@ -704,7 +723,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
         case 'P':
             if (!g_PKeyPressed)
             {
-                debug.AddLog("fuck");
+                debug.AddLog("Mouse Lock Toggled");
                 g_CenterMouse = !g_CenterMouse;
                 g_PKeyPressed = true;
             }
@@ -822,7 +841,6 @@ void setupLightForRender()
         g_pImmediateContext->UpdateSubresource(g_pLightConstantBufferDefault, 0, nullptr, &lightProperties, 0, 0);
         break;
     case 1:
-        //g_pImmediateContext->UpdateSubresource(g_pLightConstantBufferOther, 0, nullptr, &lightProperties, 0, 0);
         break;
     }
 }
@@ -862,11 +880,22 @@ void Render()
     float t = calculateDeltaTime();
     if (t == 0.0f)
         return;
-    g_pImmediateContext->OMSetRenderTargets(1, &g_pFSQRenderTargetView, g_pDepthStencilView);
-    // Clear the render target and depth stencil if necessary
-    g_pImmediateContext->ClearRenderTargetView(g_pFSQRenderTargetView, Colors::Red);
-    g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+    switch (g_RendererShader)
+    {
+    case 1:
+        g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
+        // Clear the render target and depth stencil if necessary
+        g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, Colors::Gray);
+        g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+        break;
+    default:
 
+        g_pImmediateContext->OMSetRenderTargets(1, &g_pFSQRenderTargetView, g_pDepthStencilView);
+        // Clear the render target and depth stencil if necessary
+        g_pImmediateContext->ClearRenderTargetView(g_pFSQRenderTargetView, Colors::Gray);
+        g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+        break;
+    }
     // Update the cube transform, material, etc.
     g_GameObject.update(t, g_pImmediateContext, g_cubeRotaionSpeed, g_cubePosition);
 
@@ -895,24 +924,33 @@ void Render()
 
     g_GameObject.draw(g_pImmediateContext);
 
-    cb1.mWorld = XMMatrixIdentity();
-    cb1.mView = XMMatrixIdentity();
-    cb1.mProjection = XMMatrixIdentity();
-    g_pImmediateContext->UpdateSubresource(g_pConstantBufferDefault, 0, nullptr, &cb1, 0, 0);
-    //
-    //// Render the full-screen quad (color cube)
-    //g_pImmediateContext->IASetInputLayout(g_pFSQVertexLayoutDefault);
-    //g_pImmediateContext->VSSetShader(g_pFSQVertexShaderDefault, nullptr, 0);
-    g_pImmediateContext->PSSetShader(g_pFSQPixelShaderDefault, nullptr, 0);
-    //g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pFSQConstantBufferDefault);
-    g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
+    if (g_RendererShader != 1)
+    {
+        cb1.mWorld = XMMatrixIdentity();
+        cb1.mView = XMMatrixIdentity();
+        cb1.mProjection = XMMatrixIdentity();
+        g_pImmediateContext->UpdateSubresource(g_pConstantBufferDefault, 0, nullptr, &cb1, 0, 0);
 
+        g_pImmediateContext->PSSetShader(g_pFSQPixelShaderDefault, nullptr, 0);
 
-    g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, Colors::MidnightBlue);
-    g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+        g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
 
-    g_FSQ.setTexture(g_pFSQRenderToTextureSRV); // You might need to implement setTexture method
-    g_FSQ.draw(g_pImmediateContext);
+        g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, Colors::MidnightBlue);
+        g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+        if (g_RendererShader == 0)
+        {
+            g_FSQ.setTexture(g_pFSQRenderToTextureSRV);
+            g_FSQ.draw(g_pImmediateContext);
+        }
+
+        g_pImmediateContext->PSSetShader(g_pFSQGSPixelShaderDefault, nullptr, 0);
+        if (g_RendererShader == 2)
+        {
+            g_FSQGS.setTexture(g_pFSQRenderToTextureSRV);
+            g_FSQGS.draw(g_pImmediateContext);
+        }
+    }
 
     SetUpGUI();
     g_pSwapChain->Present(0, 0);
@@ -926,7 +964,9 @@ void SetUpGUI()
     ImGui::NewFrame();
 
     // Create a window called "My Window" and a slider within it
-    ImGui::Begin("hello"); // Begin a new window
+    ImGui::Begin("DebugMenu"); // Begin a new window
+    ImGui::Text("foreasier access to debug menu");
+    ImGui::Text("Press \"P\" To toggle mouse lock");
 
     float availableWidth = ImGui::GetContentRegionAvail().x;
 
@@ -1043,12 +1083,24 @@ void SetUpGUI()
     if (openRenderingWindow) 
     {
         ImGui::Begin("Rendinging Settings", &openControlsWindow); // Use a flag to close the window
-        const char* RendererOptions[2] = {"defualt","other"};
+        const char* RendererOptions[3] = {"FSQ","Non-FSQ","GreyScale"};
         ImGui::Text("Renderer Shader: %s",RendererOptions[g_RendererShader]);
         if (ImGui::BeginMenu("RendererOptions")) 
         {
-            if (ImGui::MenuItem("Defualt")) { g_RendererShader = 0; }
-            if (ImGui::MenuItem("Other")) { g_RendererShader = 1; }
+            if (ImGui::MenuItem("FSQ")) { 
+                g_RendererShader = 0;
+                debug.AddLog("FSQ Renderer activated");
+            }
+            if (ImGui::MenuItem("Non-FSQ")) 
+            { 
+                g_RendererShader = 1; 
+                debug.AddLog("non-FSQ Renderer activated");
+            }
+            if (ImGui::MenuItem("GreyScale"))
+            {
+                g_RendererShader = 2;
+                debug.AddLog("GreyScale Renderer activated");
+            }
             ImGui::EndMenu();
         }
         ImGui::End(); // End the Controls window

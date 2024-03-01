@@ -49,18 +49,17 @@ HRESULT FullScreenQuad::initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	 //Create index buffer
 	WORD indices[] =
 	{
+		0,2,3,
 		0,1,2,
-		0,2,3
 	};
 
 	// Create vertex buffer
 	SimpleVertex vertices[] =
 	{
-		// front
-	{ XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // Top left
-	{ XMFLOAT3(-1.0f, 1.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) , XMFLOAT2(0.0f, 0.0f) }, // Bottom right
-	{ XMFLOAT3(1.0f, 1.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // Bottom left
-	{ XMFLOAT3(1.0f, -1.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f)}, // Top right
+	{ XMFLOAT3(-size+pos.x, -size + pos.y, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // Top left
+	{ XMFLOAT3(-size + pos.x, size + pos.y, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) , XMFLOAT2(0.0f, 0.0f) }, // Bottom right
+	{ XMFLOAT3(size + pos.x, size + pos.y, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // Bottom left
+	{ XMFLOAT3(size + pos.x, -size + pos.y, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f)}, // Top right
 	};
 
 

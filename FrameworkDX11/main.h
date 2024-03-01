@@ -77,6 +77,7 @@ int						g_viewHeight;
 
 DrawableGameObject		g_GameObject;
 FullScreenQuad				g_FSQ;
+FullScreenQuad				g_FSQGS;
 
 
 ID3D11DepthStencilView* g_pDepthStencilView = nullptr;
@@ -86,10 +87,13 @@ ID3D11RenderTargetView* g_pFSQRenderTargetView = nullptr;
 ID3D11ShaderResourceView* g_pFSQRenderToTextureSRV = nullptr;
 
 ID3D11VertexShader* g_pFSQVertexShaderDefault = nullptr;
+ID3D11VertexShader* g_pFSQGSVertexShaderDefault = nullptr;
 ID3D11InputLayout* g_pFSQVertexLayoutDefault = nullptr;
+ID3D11InputLayout* g_pFSQGSVertexLayoutDefault = nullptr;
 ID3D11PixelShader* g_pFSQPixelShaderDefault = nullptr;
+ID3D11PixelShader* g_pFSQGSPixelShaderDefault = nullptr;
 ID3D11Buffer* g_pFSQConstantBufferDefault = nullptr;
-ID3D11Buffer* g_pFSQLightConstantBufferDefault = nullptr;
+ID3D11Buffer* g_pFSQGSConstantBufferDefault = nullptr;
 
 ID3D11Texture2D* renderTargetTexture = nullptr;
 ID3D11RenderTargetView* renderToTextureRTV = nullptr;

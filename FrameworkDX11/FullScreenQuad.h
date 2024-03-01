@@ -30,9 +30,12 @@ public:
 	XMFLOAT4X4* getTransform() { return &m_World; }
 	ID3D11SamplerState** getTextureSamplerState() { return &m_pSamplerLinear; }
 	void setTexture(ID3D11ShaderResourceView* textureSRV);
-
+	void setSize(float s) { size = s; };
+	void setPos(XMFLOAT2 p) { pos = p; };
 private:
 
+	float size = 1.0f;
+	XMFLOAT2 pos = XMFLOAT2(0, 0);
 	XMFLOAT4X4							m_World;
 	ID3D11Buffer* m_pVertexBuffer;
 	ID3D11Buffer* m_pIndexBuffer;

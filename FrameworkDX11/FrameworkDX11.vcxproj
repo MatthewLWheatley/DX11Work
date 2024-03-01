@@ -388,8 +388,6 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Resources\MilkCat.dds" />
-    <Image Include="Resources\MilkCatNormal.dds" />
     <Image Include="Resources\stone.dds" />
   </ItemGroup>
   <ItemGroup>
