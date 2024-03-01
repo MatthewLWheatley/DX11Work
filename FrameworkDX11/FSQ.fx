@@ -24,12 +24,16 @@ struct PS_INPUT
 PS_INPUT VS(VS_INPUT input)
 {
     PS_INPUT output;
-    output.Pos = input.Pos; // Pass through position
-    output.Tex = input.Tex; // Pass through texture coordinate
+    output.Pos = input.Pos;//mul(input.Pos, World);
+    output.Tex = input.Tex;
     return output;
 }
 
 float4 PS(PS_INPUT input) : SV_TARGET
 {
-    return ShaderTexture.Sample(SamplerLinear, input.Tex);
+    float2 xy = input.Tex.xy;
+    xy.x = input.Tex.x/2 - input.Pos.x;
+    xy.y = -input.Tex.y/2 - input.Pos.y;
+    //return float4(xy, 0.0, 1.0);
+    return ShaderTexture.Sample(SamplerLinear,xy);
 }

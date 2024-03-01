@@ -313,25 +313,50 @@ HRESULT InitDevice()
         return hr;
     }
 
-    // Texture description
+
+
     D3D11_TEXTURE2D_DESC textureDesc = {};
+    // Texture description
+    ZeroMemory(&textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
     textureDesc.Width = width; // Desired texture width
     textureDesc.Height = height; // Desired texture height
     textureDesc.MipLevels = 1;
     textureDesc.ArraySize = 1;
     textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // Texture format
     textureDesc.SampleDesc.Count = 1;
+    textureDesc.SampleDesc.Quality = 0;
     textureDesc.Usage = D3D11_USAGE_DEFAULT;
     textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
     textureDesc.CPUAccessFlags = 0;
     textureDesc.MiscFlags = 0;
 
+    //// Create the texture
+    //hr = g_pd3dDevice->CreateTexture2D(&textureDesc, nullptr, &renderTargetTexture);
+    //// Create the render target view
+    //hr = g_pd3dDevice->CreateRenderTargetView(renderTargetTexture, nullptr, &renderToTextureRTV);
+    //// Create the shader resource view
+    //hr = g_pd3dDevice->CreateShaderResourceView(renderTargetTexture, nullptr, &renderToTextureSRV);
+
+
     // Create the texture
-    hr = g_pd3dDevice->CreateTexture2D(&textureDesc, nullptr, &renderTargetTexture);
-    // Create the render target view
-    hr = g_pd3dDevice->CreateRenderTargetView(renderTargetTexture, nullptr, &renderToTextureRTV);
-    // Create the shader resource view
-    hr = g_pd3dDevice->CreateShaderResourceView(renderTargetTexture, nullptr, &renderToTextureSRV);
+    hr = g_pd3dDevice->CreateTexture2D(&textureDesc, nullptr, &g_FSQTargetTexture);
+
+    D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
+    renderTargetViewDesc.Format = textureDesc.Format;
+    renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+    renderTargetViewDesc.Texture2D.MipSlice = 0; // Use the first and only mip level.
+
+    hr = g_pd3dDevice->CreateRenderTargetView(g_FSQTargetTexture, &renderTargetViewDesc, &g_pFSQRenderTargetView);
+
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+    shaderResourceViewDesc.Format = textureDesc.Format;
+    shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    shaderResourceViewDesc.Texture2D.MostDetailedMip = 0; // The most detailed mip level.
+    shaderResourceViewDesc.Texture2D.MipLevels = 1; // The total number of mip levels to use.
+
+    hr = g_pd3dDevice->CreateShaderResourceView(g_FSQTargetTexture, &shaderResourceViewDesc, &g_pFSQRenderToTextureSRV);
+
 
     // Create the depth stencil view
     D3D11_DEPTH_STENCIL_VIEW_DESC descDSV = {};
@@ -346,7 +371,7 @@ HRESULT InitDevice()
         return hr;
     }
 
-    g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
+    //g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
 
     // Setup the viewport
     D3D11_VIEWPORT vp;
@@ -543,7 +568,7 @@ HRESULT		InitRunTimeParameters()
     // Create the constant buffer
     D3D11_BUFFER_DESC bd2 = {};
     bd2.Usage = D3D11_USAGE_DEFAULT;
-    bd2.ByteWidth = sizeof(ConstantBuffer2);
+    bd2.ByteWidth = sizeof(ConstantBuffer);
     bd2.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     bd2.CPUAccessFlags = 0;
     hr = g_pd3dDevice->CreateBuffer(&bd2, nullptr, &g_pFSQConstantBufferDefault);
@@ -557,11 +582,11 @@ HRESULT		InitRunTimeParameters()
 // ***************************************************************************************
 HRESULT		InitWorld(int width, int height)
 {
-    g_pCamera = new Camera(XMFLOAT3(0.0f, 0, -3), XMFLOAT3(0, 0, 1), XMFLOAT3(0.0f, 1.0f, 0.0f));
+    g_pCamera = new Camera(XMFLOAT3(0.0f, 0, -6), XMFLOAT3(0, 0, 1), XMFLOAT3(0.0f, 1.0f, 0.0f));
 
 	// Initialize the projection matrix
     constexpr float fovAngleY = XMConvertToRadians(60.0f);
-	g_Projection = XMMatrixPerspectiveFovLH(fovAngleY, width / (FLOAT)height, 0.01f, 100.0f);
+	g_Projection = XMMatrixPerspectiveFovLH(fovAngleY, (float)width / (FLOAT)height, 0.01f, 1000.0f);
 
 	return S_OK;
 }
@@ -837,14 +862,9 @@ void Render()
     float t = calculateDeltaTime();
     if (t == 0.0f)
         return;
-    g_pImmediateContext->OMSetRenderTargets(1, &renderToTextureRTV, g_pDepthStencilView);
+    g_pImmediateContext->OMSetRenderTargets(1, &g_pFSQRenderTargetView, g_pDepthStencilView);
     // Clear the render target and depth stencil if necessary
-    g_pImmediateContext->ClearRenderTargetView(renderToTextureRTV, Colors::MidnightBlue);
-    g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-    // Clear the back buffer
-    g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, Colors::MidnightBlue);
-
-    // Clear the depth buffer to 1.0 (max depth)
+    g_pImmediateContext->ClearRenderTargetView(g_pFSQRenderTargetView, Colors::Red);
     g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
     // Update the cube transform, material, etc.
@@ -875,42 +895,25 @@ void Render()
 
     g_GameObject.draw(g_pImmediateContext);
 
-    // Set the texture rendered to by previous operations to g_FSQ
-    g_FSQ.setTexture(renderToTextureSRV); // You might need to implement setTexture method
-
-    // Draw g_FSQ
     cb1.mWorld = XMMatrixIdentity();
     cb1.mView = XMMatrixIdentity();
     cb1.mProjection = XMMatrixIdentity();
-
-    g_pImmediateContext->UpdateSubresource(g_pFSQConstantBufferDefault, 0, nullptr, &cb1, 0, 0);
-
+    g_pImmediateContext->UpdateSubresource(g_pConstantBufferDefault, 0, nullptr, &cb1, 0, 0);
+    //
+    //// Render the full-screen quad (color cube)
+    //g_pImmediateContext->IASetInputLayout(g_pFSQVertexLayoutDefault);
+    //g_pImmediateContext->VSSetShader(g_pFSQVertexShaderDefault, nullptr, 0);
+    g_pImmediateContext->PSSetShader(g_pFSQPixelShaderDefault, nullptr, 0);
+    //g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pFSQConstantBufferDefault);
     g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
 
-    // Clear the main render target and depth stencil if necessary
-    g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, Colors::Red);
+
+    g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, Colors::MidnightBlue);
     g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
+    g_FSQ.setTexture(g_pFSQRenderToTextureSRV); // You might need to implement setTexture method
     g_FSQ.draw(g_pImmediateContext);
 
-    //--------------------------------------------------------------------------------------
-
-    //g_FSQ.setTexture(renderToTextureSRV);
-
-    //// Reset constant buffer
-    //cb1.mWorld = XMMatrixIdentity();
-    //cb1.mView = XMMatrixIdentity();
-    //cb1.mProjection = XMMatrixIdentity();
-    //g_pImmediateContext->UpdateSubresource(g_pConstantBufferDefault, 0, nullptr, &cb1, 0, 0);
-
-    //// Render the full-screen quad (color cube)
-    //g_pImmediateContext->VSSetShader(g_pFSQVertexShaderDefault, nullptr, 0);
-    //g_pImmediateContext->PSSetShader(g_pFSQPixelShaderDefault, nullptr, 0);
-    //g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
-
-    //g_FSQ.draw(g_pImmediateContext);
-
-    // GUI setup and present back buffer
     SetUpGUI();
     g_pSwapChain->Present(0, 0);
 }

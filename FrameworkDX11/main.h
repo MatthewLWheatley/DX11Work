@@ -60,7 +60,6 @@ IDXGISwapChain* g_pSwapChain = nullptr;
 IDXGISwapChain1* g_pSwapChain1 = nullptr;
 ID3D11RenderTargetView* g_pRenderTargetView = nullptr;
 ID3D11Texture2D* g_pDepthStencil = nullptr;
-ID3D11DepthStencilView* g_pDepthStencilView = nullptr;
 
 ID3D11VertexShader* g_pVertexShaderDefault = nullptr;
 ID3D11PixelShader* g_pPixelShaderDefault = nullptr;
@@ -80,7 +79,12 @@ DrawableGameObject		g_GameObject;
 FullScreenQuad				g_FSQ;
 
 
+ID3D11DepthStencilView* g_pDepthStencilView = nullptr;
+
+ID3D11Texture2D* g_FSQTargetTexture = nullptr;
 ID3D11RenderTargetView* g_pFSQRenderTargetView = nullptr;
+ID3D11ShaderResourceView* g_pFSQRenderToTextureSRV = nullptr;
+
 ID3D11VertexShader* g_pFSQVertexShaderDefault = nullptr;
 ID3D11InputLayout* g_pFSQVertexLayoutDefault = nullptr;
 ID3D11PixelShader* g_pFSQPixelShaderDefault = nullptr;

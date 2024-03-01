@@ -46,46 +46,46 @@ void FullScreenQuad::cleanup()
 
 HRESULT FullScreenQuad::initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
 {
-	// Create index buffer
+	 //Create index buffer
 	WORD indices[] =
 	{
 		0,1,2,
+		0,2,3
 	};
 
 	// Create vertex buffer
 	SimpleVertex vertices[] =
 	{
 		// front
-	{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) }, // Top left
-	{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f) , XMFLOAT2(1.0f, 1.0f) }, // Bottom right
-	{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(0.0f, 1.0f) }, // Bottom left
-
-	{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) }, // Top right
-	{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f) , XMFLOAT2(1.0f, 1.0f) }, // Bottom right
-	{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) }  // Top left
+	{ XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // Top left
+	{ XMFLOAT3(-1.0f, 1.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) , XMFLOAT2(0.0f, 0.0f) }, // Bottom right
+	{ XMFLOAT3(1.0f, 1.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // Bottom left
+	{ XMFLOAT3(1.0f, -1.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f)}, // Top right
 	};
 
 
 	D3D11_BUFFER_DESC bd = {};
+	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(SimpleVertex) * NUM_VERTICES;
+	bd.ByteWidth = sizeof(SimpleVertex) * ARRAYSIZE(vertices);
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 
 	D3D11_SUBRESOURCE_DATA InitData = {};
+	ZeroMemory(&InitData, sizeof(InitData));
 	InitData.pSysMem = vertices;
 	HRESULT hr = pd3dDevice->CreateBuffer(&bd, &InitData, &m_pVertexBuffer);
 	if (FAILED(hr))
 		return hr;
 
 	// Set vertex buffer
-	UINT stride = sizeof(SimpleVertex);
-	UINT offset = 0;
-	pContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
+	/*UINT stride = sizeof(SimpleVertex);
+	UINT offset = 0;*/
+	/*pContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);*/
 
 
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(WORD) * NUM_VERTICES;        // 36 vertices needed for 12 triangles in a triangle list
+	bd.ByteWidth = sizeof(WORD) * ARRAYSIZE(indices);        // 36 vertices needed for 12 triangles in a triangle list
 	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 	InitData.pSysMem = indices;
@@ -93,11 +93,11 @@ HRESULT FullScreenQuad::initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	if (FAILED(hr))
 		return hr;
 
-	// Set index buffer
-	pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	//// Set index buffer
+	//pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-	// Set primitive topology
-	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//// Set primitive topology
+	//pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// load and setup textures
 	//hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Stone.dds", nullptr, &m_pTextureResourceView);
@@ -107,7 +107,7 @@ HRESULT FullScreenQuad::initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory(&sampDesc, sizeof(sampDesc));
-	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -116,15 +116,7 @@ HRESULT FullScreenQuad::initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear);
 
-	// Create the material constant buffer
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(MaterialPropertiesConstantBuffer);
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = 0;
-	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_pMaterialConstantBuffer);
-	if (FAILED(hr))
-		return hr;
-
+	pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
 	return hr;
 }
 void FullScreenQuad::setTexture(ID3D11ShaderResourceView* textureSRV)

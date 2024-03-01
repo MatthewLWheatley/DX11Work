@@ -206,6 +206,11 @@ void DrawableGameObject::setPosition(XMFLOAT3 position)
 	m_position = position;
 }
 
+XMFLOAT3 DrawableGameObject::getPosition()
+{
+	return m_position;
+}
+
 void DrawableGameObject::update(float t, ID3D11DeviceContext* pContext, XMFLOAT3 rotation, XMFLOAT3 position)
 {
 	static float cummulativeTime = 0.1;
