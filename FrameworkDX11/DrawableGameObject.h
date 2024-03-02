@@ -21,6 +21,7 @@ public:
 	~DrawableGameObject();
 
 	void cleanup();
+	void LoadOBJ();
 
 	HRESULT								initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext);
 	void								update(float t, ID3D11DeviceContext* pContext, XMFLOAT3 rotation, XMFLOAT3 position);
@@ -51,4 +52,3 @@ private:
 	ID3D11Buffer*						m_pMaterialConstantBuffer = nullptr;
 	XMFLOAT3							m_position;
 };
-

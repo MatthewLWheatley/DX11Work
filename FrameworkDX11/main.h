@@ -16,12 +16,9 @@
 
 #include <vector>
 
-#include "imgui\\imgui.h"
-#include "imgui\\imgui_impl_dx11.h"
-#include "imgui\\imgui_impl_win32.h"
 #include "constants.h"
 #include "Camera.h"
-#include "DebugLogger.cpp"
+#include "Debugger.h"
 #include "FullScreenQuad.h"
 
 using namespace std;
@@ -78,6 +75,8 @@ int						g_viewHeight;
 DrawableGameObject		g_GameObject;
 FullScreenQuad				g_FSQ;
 FullScreenQuad				g_FSQGS;
+Debugger							g_Debugger;
+;
 
 
 ID3D11DepthStencilView* g_pDepthStencilView = nullptr;
@@ -100,12 +99,7 @@ ID3D11RenderTargetView* renderToTextureRTV = nullptr;
 ID3D11ShaderResourceView* renderToTextureSRV = nullptr;
 
 //debug stuffs below
-bool openControlsWindow = false;
-bool openCubeWindow = false;
-bool openLightWindow = false;
-bool openRenderingWindow = false;
-DebugLogger debug;
-void SetUpGUI();
+
 
 //cube
 XMFLOAT3 g_cubeRotaionSpeed = {0.0f,0.0f, 0.0f};

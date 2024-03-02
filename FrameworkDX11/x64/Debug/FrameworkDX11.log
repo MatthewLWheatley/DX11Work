@@ -1,2 +1,8 @@
-﻿  FullScreenQuad.cpp
-  FrameworkDX11.vcxproj -> C:\Users\W027271K.STUDENT\Documents\GitHub\DX11Work\x64\Debug\FrameworkDX11.exe
+﻿  main.cpp
+C:\Users\Matty\Desktop\Dx11Work\DX11Work\FrameworkDX11\main.cpp(470,15): warning C4189: 'pVSBlobOther': local variable is initialized but not referenced
+C:\Users\Matty\Desktop\Dx11Work\DX11Work\FrameworkDX11\main.cpp(1007,15): warning C4456: declaration of 'availableWidth' hides previous local declaration
+  C:\Users\Matty\Desktop\Dx11Work\DX11Work\FrameworkDX11\main.cpp(940,11):
+  see declaration of 'availableWidth'
+  
+x64\Debug\Debugger.obj : warning LNK4042: object specified more than once; extras ignored
+  FrameworkDX11.vcxproj -> C:\Users\Matty\Desktop\Dx11Work\DX11Work\x64\Debug\FrameworkDX11.exe

@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <FxCompile Include="shader.fx" />
-    <FxCompile Include="FSQ.fx" />
+    <FxCompile Include="FSQ.fx">
+      <Filter>shader</Filter>
+    </FxCompile>
+    <FxCompile Include="shader.fx">
+      <Filter>shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="DDSTextureLoader.cpp" />
-    <ClCompile Include="DrawableGameObject.cpp" />
-    <ClCompile Include="main.cpp" />
     <ClCompile Include="imgui\imgui.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
@@ -30,17 +30,29 @@
     <ClCompile Include="imgui\imgui_widgets.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="DebugLogger.cpp" />
-    <ClCompile Include="FullScreenQuad.cpp" />
+    <ClCompile Include="Camera.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="DDSTextureLoader.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="DrawableGameObject.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="FullScreenQuad.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="Debugger.h">
+      <Filter>header</Filter>
+    </ClCompile>
+    <ClCompile Include="Debugger.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="constants.h" />
-    <ClInclude Include="DDSTextureLoader.h" />
-    <ClInclude Include="DrawableGameObject.h" />
-    <ClInclude Include="main.h" />
-    <CLInclude Include="resource.h" />
-    <ClInclude Include="structures.h" />
     <ClInclude Include="imgui\imconfig.h">
       <Filter>imgui</Filter>
     </ClInclude>
@@ -65,7 +77,30 @@
     <ClInclude Include="imgui\imstb_truetype.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="FullScreenQuad.h" />
+    <ClInclude Include="Camera.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="constants.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="DDSTextureLoader.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawableGameObject.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="FullScreenQuad.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <CLInclude Include="resource.h">
+      <Filter>header</Filter>
+    </CLInclude>
+    <ClInclude Include="structures.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Tutorial01.rc" />
@@ -76,6 +111,15 @@
   <ItemGroup>
     <Filter Include="imgui">
       <UniqueIdentifier>{9af29f79-84d7-4240-9a99-a81135d6888a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cpp">
+      <UniqueIdentifier>{8667b4fe-445c-4fb1-9d41-a854369c2ca5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header">
+      <UniqueIdentifier>{3c488643-aa8d-44f5-ae97-0fea6c6a08b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shader">
+      <UniqueIdentifier>{f1e0cfcd-db25-40f0-9267-c0a4798740f2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

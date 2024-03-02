@@ -1,25 +1,7 @@
-//--------------------------------------------------------------------------------------
-// File: main.cpp
-//
-// This application demonstrates animation using matrix transformations
-//
-// http://msdn.microsoft.com/en-us/library/windows/apps/ff729722.aspx
-//
-// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-// PARTICULAR PURPOSE.
-//
-// Copyright (c) Microsoft Corporation. All rights reserved.
-//--------------------------------------------------------------------------------------
 #define _XM_NO_INTRINSICS_
 
 #include "main.h"
 
-//--------------------------------------------------------------------------------------
-// Entry point to the program. Initializes everything and goes into a message processing 
-// loop. Idle time is used to render the scene.
-//--------------------------------------------------------------------------------------
 int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow )
 {
     UNREFERENCED_PARAMETER( hPrevInstance );
@@ -416,15 +398,8 @@ HRESULT InitDevice()
         return hr;
     }
 
-    // Initialize ImGui after setting up Direct3D
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui::StyleColorsDark();
 
-    // Assuming g_hWnd is your window handle
-    ImGui_ImplWin32_Init(g_hWnd);
-    ImGui_ImplDX11_Init(g_pd3dDevice, g_pImmediateContext);
+    g_Debugger.Init(&g_hWnd, g_pd3dDevice, g_pImmediateContext);
 
     return S_OK;
 }
@@ -723,7 +698,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
         case 'P':
             if (!g_PKeyPressed)
             {
-                debug.AddLog("Mouse Lock Toggled");
+                g_Debugger.AddLog("Mouse Lock Toggled");
                 g_CenterMouse = !g_CenterMouse;
                 g_PKeyPressed = true;
             }
@@ -809,7 +784,7 @@ void setupLightForRender()
 {
     Light light;
     light.Enabled = static_cast<int>(true);
-    if(g_LightType)light.LightType = PointLight;
+    if (g_LightType)light.LightType = PointLight;
     else light.LightType = DirectionalLight;
     light.Color = XMFLOAT4(g_lightColor);
     light.SpotAngle = XMConvertToRadians(45.0f);
@@ -820,7 +795,7 @@ void setupLightForRender()
     // set up the light
 
     XMFLOAT4 LightPosition(g_pCamera->GetPosition().x, g_pCamera->GetPosition().y, g_pCamera->GetPosition().z, 1);
-    if (!g_lightOnCamera )
+    if (!g_lightOnCamera)
     {
         LightPosition = XMFLOAT4(g_lightPosition.x, g_lightPosition.y, g_lightPosition.z, 1.0f);
     }
@@ -834,15 +809,9 @@ void setupLightForRender()
     XMStoreFloat4(&light.Direction, LightDirection);
 
     LightPropertiesConstantBuffer lightProperties;
-    lightProperties.EyePosition = XMFLOAT4(g_pCamera->GetPosition().x, g_pCamera->GetPosition().y, g_pCamera->GetPosition().z,0.0f);
-    lightProperties.Lights[0] = light; switch (g_RendererShader)
-    {
-    case 0:
-        g_pImmediateContext->UpdateSubresource(g_pLightConstantBufferDefault, 0, nullptr, &lightProperties, 0, 0);
-        break;
-    case 1:
-        break;
-    }
+    lightProperties.EyePosition = XMFLOAT4(g_pCamera->GetPosition().x, g_pCamera->GetPosition().y, g_pCamera->GetPosition().z, 0.0f);
+    lightProperties.Lights[0] = light;
+    g_pImmediateContext->UpdateSubresource(g_pLightConstantBufferDefault, 0, nullptr, &lightProperties, 0, 0);
 }
 
 float calculateDeltaTime()
@@ -944,173 +913,14 @@ void Render()
             g_FSQ.draw(g_pImmediateContext);
         }
 
-        g_pImmediateContext->PSSetShader(g_pFSQGSPixelShaderDefault, nullptr, 0);
         if (g_RendererShader == 2)
         {
+            g_pImmediateContext->PSSetShader(g_pFSQGSPixelShaderDefault, nullptr, 0);
             g_FSQGS.setTexture(g_pFSQRenderToTextureSRV);
             g_FSQGS.draw(g_pImmediateContext);
         }
     }
 
-    SetUpGUI();
+    g_Debugger.Draw("DebugMenu");
     g_pSwapChain->Present(0, 0);
-}
-
-void SetUpGUI()
-{
-    // Start ImGui frame
-    ImGui_ImplDX11_NewFrame();
-    ImGui_ImplWin32_NewFrame();
-    ImGui::NewFrame();
-
-    // Create a window called "My Window" and a slider within it
-    ImGui::Begin("DebugMenu"); // Begin a new window
-    ImGui::Text("foreasier access to debug menu");
-    ImGui::Text("Press \"P\" To toggle mouse lock");
-
-    float availableWidth = ImGui::GetContentRegionAvail().x;
-
-    if (ImGui::MenuItem("controls"))
-    {
-        // Flag to open controls window
-        openControlsWindow = true;
-    }
-    if (ImGui::MenuItem("Cube"))
-    {
-        // Flag to open Cube window
-        openCubeWindow = true;
-    }
-    if (ImGui::MenuItem("light"))
-    {
-        // Flag to open light window
-        openLightWindow = true;
-    }
-    if (ImGui::MenuItem("Rendering"))
-    {
-        // Flag to open light window
-        openRenderingWindow = true;
-    }
-
-    ImGui::End(); // End the main window
-
-    // Controls window
-    if (openControlsWindow)
-    {
-        ImGui::Begin("Controls Settings", &openControlsWindow); // Use a flag to close the window
-        ImGui::Text("Press \'P\' to toggle");
-        ImGui::Checkbox("MouseLock", &g_CenterMouse);
-        ImGui::End(); // End the Controls window
-    }
-
-    // Cube window
-    if (openCubeWindow)
-    {
-        ImGui::Begin("Cube Settings", &openCubeWindow); // Use a flag to close the window
-        float sliderWidth = availableWidth / 3.0f - ImGui::GetStyle().ItemSpacing.x; // Adjust for spacing
-        ImGui::PushItemWidth(sliderWidth);
-        ImGui::Text("Rotation speed of cube");
-        ImGui::SliderFloat("##X rotation speed", &g_cubeRotaionSpeed.x, -1.0f, 1.0f);
-        ImGui::SameLine();
-        ImGui::SliderFloat("##Y rotation speed", &g_cubeRotaionSpeed.y, -1.0f, 1.0f);
-        ImGui::SameLine();
-        ImGui::SliderFloat("##Z rotation speed", &g_cubeRotaionSpeed.z, -1.0f, 1.0f);
-        ImGui::PopItemWidth();
-        if (ImGui::Button("Rest to zero")) { g_cubeRotaionSpeed = { 0.0f,0.0f,0.0f }; }
-
-        sliderWidth = availableWidth / 3.0f - ImGui::GetStyle().ItemSpacing.x; // Adjust for spacing
-        ImGui::PushItemWidth(sliderWidth);
-        ImGui::Text("Position of cube");
-        ImGui::InputFloat("##X cube", &g_cubePosition.x);
-        ImGui::SameLine();
-        ImGui::InputFloat("##Y cube", &g_cubePosition.y);
-        ImGui::SameLine();
-        ImGui::InputFloat("##Z cube", &g_cubePosition.z);
-        ImGui::PopItemWidth();
-        if (ImGui::Button("Rest to zero")) { g_cubePosition = { 0.0f,0.0f,0.0f }; }
-        ImGui::End();
-    }
-
-    // Light window
-    if (openLightWindow)
-    {
-        ImGui::Begin("Light Settings", &openLightWindow); // Use a flag to close the window
-
-        float availableWidth = ImGui::GetContentRegionAvail().x;
-        float sliderWidth = availableWidth / 3.0f - ImGui::GetStyle().ItemSpacing.x; // Adjust for spacing
-        //light
-        sliderWidth = availableWidth / 4.0f - ImGui::GetStyle().ItemSpacing.x; // Adjust for spacing
-        ImGui::PushItemWidth(sliderWidth);
-        ImGui::Text("Colour Of Light");
-        ImGui::SliderFloat("##R", &g_lightColor.x, 0.0f, 1.0f);
-        ImGui::SameLine();
-        ImGui::SliderFloat("##G", &g_lightColor.y, 0.0f, 1.0f);
-        ImGui::SameLine();
-        ImGui::SliderFloat("##B", &g_lightColor.z, 0.0f, 1.0f);
-        ImGui::SameLine();
-        ImGui::SliderFloat("##A", &g_lightColor.w, 0.0f, 1.0f);
-        ImGui::PopItemWidth();
-        if (ImGui::Button("Rest to White")) { g_lightColor = { 1.0f,1.0f,1.0f,1.0f }; }
-
-        ImGui::Checkbox("light follows camera", &g_lightOnCamera);
-        sliderWidth = availableWidth / 3.0f - ImGui::GetStyle().ItemSpacing.x; // Adjust for spacing
-        ImGui::PushItemWidth(sliderWidth);
-        ImGui::Text("Position Of Light");
-        ImGui::InputFloat("##X light pos", &g_lightPosition.x);
-        ImGui::SameLine();
-        ImGui::InputFloat("##Y light pos", &g_lightPosition.y);
-        ImGui::SameLine();
-        ImGui::InputFloat("##Z light pos", &g_lightPosition.z);
-        ImGui::PopItemWidth();
-        if (ImGui::Button("Rest to White"))
-        {
-            g_pCamera->SetPosition(XMFLOAT3{ 0.0f, 0.0f, -3.0f });
-            g_lightPosition = { 0.0f, 0.0f, -3.0f };
-        }
-        if (ImGui::Button("Switch Light Type"))
-        {
-            g_LightType = !g_LightType;
-        }
-        ImGui::SameLine();
-        if (g_LightType)
-        {
-            ImGui::Text("Spot light");
-        }
-        else ImGui::Text("Direction Light");
-        ImGui::End();
-    }
-
-    // Rendering window
-    if (openRenderingWindow) 
-    {
-        ImGui::Begin("Rendinging Settings", &openControlsWindow); // Use a flag to close the window
-        const char* RendererOptions[3] = {"FSQ","Non-FSQ","GreyScale"};
-        ImGui::Text("Renderer Shader: %s",RendererOptions[g_RendererShader]);
-        if (ImGui::BeginMenu("RendererOptions")) 
-        {
-            if (ImGui::MenuItem("FSQ")) { 
-                g_RendererShader = 0;
-                debug.AddLog("FSQ Renderer activated");
-            }
-            if (ImGui::MenuItem("Non-FSQ")) 
-            { 
-                g_RendererShader = 1; 
-                debug.AddLog("non-FSQ Renderer activated");
-            }
-            if (ImGui::MenuItem("GreyScale"))
-            {
-                g_RendererShader = 2;
-                debug.AddLog("GreyScale Renderer activated");
-            }
-            ImGui::EndMenu();
-        }
-        ImGui::End(); // End the Controls window
-    }
-
-    // Render your GUI with ImGui here
-    debug.Draw("Debug Logger");
-
-
-    // Render ImGui
-    ImGui::Render();
-    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }

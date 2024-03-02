@@ -14,7 +14,10 @@ DrawableGameObject::DrawableGameObject()
 
 	// Initialize the world matrix
 	XMStoreFloat4x4(&m_World, XMMatrixIdentity());
+
+
 }
+
 
 DrawableGameObject::~DrawableGameObject()
 {
@@ -42,6 +45,13 @@ void DrawableGameObject::cleanup()
 	if (m_pMaterialConstantBuffer)
 		m_pMaterialConstantBuffer->Release();
 	m_pMaterialConstantBuffer = nullptr;
+}
+
+
+void DrawableGameObject::LoadOBJ()
+{
+
+
 }
 
 HRESULT DrawableGameObject::initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
@@ -432,3 +442,5 @@ void DrawableGameObject::CalculateTangentBinormalRH(SimpleVertex v0, SimpleVerte
 
 	return;
 }
+
+void DrawableGameObject::Set
